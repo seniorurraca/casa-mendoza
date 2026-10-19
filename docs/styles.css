@@ -46,7 +46,7 @@ output { color: var(--text); font-weight: 600; }
 .card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .photo { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--border); }
 .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.score { position: absolute; top: 10px; left: 10px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 17px; }
+.score { position: absolute; top: 10px; right: 10px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 17px; }
 .score.good { background: var(--good-bg); color: var(--good-fg); }
 .score.mid { background: var(--info-bg); color: var(--info-fg); }
 .score.low { background: var(--warn-bg); color: var(--warn-fg); }
@@ -156,3 +156,7 @@ dialog::backdrop { background: rgb(0 0 0 / 0.6); }
 .card .head h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card .address { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card .facts { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(2 * 1.5em); }
+.new-tag { position: absolute; top: 10px; left: 10px; z-index: 1; padding: 4px 10px; border-radius: 999px; background: var(--accent); color: var(--surface); font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; box-shadow: 0 2px 8px rgb(0 0 0 / 0.25); }
+.gallery-main { position: relative; }
+.new-banner { margin: 6px 0 0; display: inline-block; padding: 6px 12px; border-radius: 999px; font-size: 14px; background: var(--info-bg); color: var(--info-fg); }
+.new-banner.has-new { background: var(--good-bg); color: var(--good-fg); font-weight: 600; }

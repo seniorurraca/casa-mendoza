@@ -24,8 +24,7 @@ const { values: args } = parseArgs({ options: { "max-pages": { type: "string" },
 const mode = args.mode;
 const config = JSON.parse(readFileSync("config.json", "utf8"));
 const detailsPath = join(dirname(config.output), "details.json");
-const now = new Date().toISOString();
-const today = now.slice(0, 10);
+const startedAt = new Date().toISOString();
 
 const usdRate = await getUsdRate(config.usdRate);
 const scraped = [];
@@ -41,14 +40,16 @@ const unique = dedupe(pool);
 const market = mode === "full" ? buildMarket(unique, config.segment) : previous.data.market;
 const offer = partition(unique, config, OFFER_RULES);
 
+const now = new Date().toISOString();
 const listings = offer.kept
   .map(l => ({ ...pick(l, PUBLIC_FIELDS), ...scoreListing(l, zoneMedian(market, l, config.segment.minSamples), config.scoring, config.maxMinutes) }))
-  .map(l => withHistory(l, previous.byId, today))
+  .map(l => withHistory(l, previous.byId, now))
   .sort((a, b) => b.score - a.score);
 
 const fullStats = { scanned: scraped.length, duplicates: pool.length - unique.length, kept: listings.length, discarded: { ...area.discarded, ...offer.discarded } };
 const result = {
   generatedAt: now,
+  startedAt,
   lastFullAt: mode === "full" ? now : previous.data.lastFullAt ?? previous.data.generatedAt,
   usdRate,
   stats: mode === "full" ? fullStats : { ...previous.data.stats, kept: listings.length, quickNew: listings.filter(l => !previous.byId.has(l.id)).length },

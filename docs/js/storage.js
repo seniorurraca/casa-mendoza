@@ -1,13 +1,25 @@
-export function load(key, fallback) {
+function read(storage, key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+    return JSON.parse(storage().getItem(key)) ?? fallback;
   } catch {
     return fallback;
   }
 }
 
-export function save(key, value) {
+function write(storage, key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    storage().setItem(key, JSON.stringify(value));
   } catch {}
 }
+
+const local = () => localStorage;
+const session = () => sessionStorage;
+
+export const load = (key, fallback) => read(local, key, fallback);
+
+export const save = (key, value) => write(local, key, value);
+
+export const storedValue = (key, kind = "local") => {
+  const storage = kind === "session" ? session : local;
+  return { get: () => read(storage, key, null), set: value => write(storage, key, value) };
+};

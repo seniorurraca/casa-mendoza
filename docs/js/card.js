@@ -1,10 +1,11 @@
 import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, photoBadge, scoreTone, sources, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, newTag, photoBadge, scoreTone, sources, title } from "./listing-view.js";
 
 export const renderCard = (l, isFavorite) => `
 <article class="card" data-id="${escapeHtml(l.id)}">
   <button type="button" class="photo" data-action="carousel" aria-label="Ver fotos">
     ${l.photo ? `<img src="${escapeHtml(l.photo)}" alt="" loading="lazy">` : ""}
+    ${newTag(l)}
     <span class="score ${scoreTone(l.score)}">${l.score}</span>
     ${photoBadge(l)}
   </button>

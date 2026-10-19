@@ -6,19 +6,23 @@ import { createCarousel } from "./carousel.js";
 import { createSettings } from "./settings.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
-import { formatUsd } from "./format.js";
+import { formatDateTime, formatUsd } from "./format.js";
 import { SOURCE_LABEL, TYPE_LABEL, title } from "./listing-view.js";
-import { load, save } from "./storage.js";
+import { load, save, storedValue } from "./storage.js";
+import { markNew, newSince, startVisit } from "./visits.js";
 
 const FILTERS_KEY = "casa-mendoza:filters";
 const FAVORITES_KEY = "casa-mendoza:favorites";
 const ZONES_KEY = "casa-mendoza:zones";
+const VISIT_KEY = "casa-mendoza:last-visit";
+const VISIT_SESSION_KEY = "casa-mendoza:visit-baseline";
 const PAGE_SIZE = 40;
 
 const form = document.querySelector("#filters");
 const list = document.querySelector("#list");
 const summary = document.querySelector("#summary");
 const moreButton = document.querySelector("#more");
+const newBanner = document.querySelector("#new-banner");
 const detailDialog = document.querySelector("#detail");
 const carousel = createCarousel(document.querySelector("#carousel"));
 
@@ -30,6 +34,7 @@ let multiSelects = [];
 let favorites = new Set(load(FAVORITES_KEY, []));
 let zonePrefs = { ...DEFAULT_ZONE_PREFS, ...load(ZONES_KEY, {}) };
 let visible = PAGE_SIZE;
+const previousVisit = startVisit({ local: storedValue(VISIT_KEY), session: storedValue(VISIT_SESSION_KEY, "session") });
 
 const byId = id => listings.find(l => l.id === id);
 const fieldValue = el => (el.type === "checkbox" ? el.checked : el.type === "number" || el.type === "range" ? Number(el.value) : el.value);
@@ -74,10 +79,20 @@ function render() {
   const results = applyFilters(listings, filters, favorites);
   const credito = results.filter(l => l.features.credito).length;
   const hidden = listings.filter(l => l.zone?.level === "high").length;
-  summary.textContent = `${results.length} resultados · ${credito} aptos crédito · ${hidden} ocultos por zona · ${data.stats.scanned} avisos revisados · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${new Date(data.generatedAt).toLocaleString("es-AR")}`;
+  summary.textContent = `${results.length} resultados · ${credito} aptos crédito · ${hidden} ocultos por zona · ${data.stats.scanned} avisos revisados · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${formatDateTime(data.generatedAt)}`;
   list.innerHTML = results.slice(0, visible).map(l => renderCard(l, favorites.has(l.id))).join("") ||
     `<p class="empty">Nada con estos filtros. Subí el precio máximo o sacá algún filtro.</p>`;
   moreButton.hidden = results.length <= visible;
+  renderNewBanner(results);
+}
+
+function renderNewBanner(results) {
+  newBanner.hidden = !previousVisit;
+  if (!previousVisit) return;
+  const count = results.filter(l => l.isNew).length;
+  const since = `desde tu última visita (${formatDateTime(previousVisit)})`;
+  newBanner.textContent = count ? `${count} ${count === 1 ? "aviso nuevo" : "avisos nuevos"} ${since}` : `Sin avisos nuevos ${since}`;
+  newBanner.classList.toggle("has-new", count > 0);
 }
 
 function toggleFavorite(id) {
@@ -149,7 +164,7 @@ moreButton.addEventListener("click", () => {
 });
 
 data = await (await fetch("data/listings.json", { cache: "no-cache" })).json();
-rawListings = data.listings.map(l => ({ ...l, baseScore: l.score, baseBreakdown: l.breakdown }));
+rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({ ...l, baseScore: l.score, baseBreakdown: l.breakdown }));
 recomputeZones();
 
 const settings = createSettings(document.querySelector("#settings"), {

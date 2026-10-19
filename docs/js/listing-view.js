@@ -1,8 +1,7 @@
-import { daysSince, escapeHtml, formatPercent, formatUsd } from "./format.js";
+import { escapeHtml, formatPercent, formatUsd } from "./format.js";
 import { mapsUrl } from "./maps.js";
 import { ICONS } from "./icons.js";
 
-const NEW_DAYS = 3;
 export const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
 export const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup" };
 
@@ -22,7 +21,6 @@ export function chips(l) {
     [l.features.credito, "good", "Apto crédito"],
     [l.type === "casa" && l.features.patio, "good", "Patio"],
     [l.type === "casa" && l.features.cochera, "info", "Cochera"],
-    [daysSince(l.firstSeen) <= NEW_DAYS, "info", "Nuevo"],
     [l.prevUsd && l.usd < l.prevUsd, "good", `Bajó ${l.prevUsd ? formatPercent(1 - l.usd / l.prevUsd) : ""}`],
     [l.suspicious, "warn", "Precio sospechoso"],
     [l.zone?.level === "medium", "warn", `Zona a verificar: ${escapeHtml(l.zone?.name)}`],
@@ -59,6 +57,8 @@ export const favButton = (l, isFavorite) => {
   const label = isFavorite ? "Quitar de favoritos" : "Guardar en favoritos";
   return `<button type="button" class="icon-btn fav ${isFavorite ? "on" : ""}" data-fav="${escapeHtml(l.id)}" title="${label}" aria-label="${label}" aria-pressed="${isFavorite}">${ICONS.star}</button>`;
 };
+
+export const newTag = l => (l.isNew ? `<span class="new-tag">Nuevo</span>` : "");
 
 export function photoBadge(l) {
   if (l.photoCount === null || l.photoCount === undefined) return `<span class="photo-badge">${ICONS.camera}</span>`;

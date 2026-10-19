@@ -1,3 +1,5 @@
+import { seenAt } from "./visits.js";
+
 export const DEFAULT_FILTERS = {
   minUsd: 0,
   maxUsd: 62000,
@@ -16,7 +18,7 @@ const SORTERS = {
   score: (a, b) => b.score - a.score,
   price: (a, b) => a.usd - b.usd,
   discount: (a, b) => (b.discount ?? -1) - (a.discount ?? -1),
-  newest: (a, b) => b.firstSeen.localeCompare(a.firstSeen) || b.score - a.score,
+  newest: (a, b) => seenAt(b).localeCompare(seenAt(a)) || b.score - a.score,
 };
 
 const allows = (selected, ...values) => !selected.length || values.some(v => selected.includes(v));

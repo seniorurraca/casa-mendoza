@@ -1,5 +1,5 @@
 import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, scoreTone, sources, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, newTag, scoreTone, sources, title } from "./listing-view.js";
 
 const formatDate = iso => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("es-AR") : null);
 
@@ -35,6 +35,7 @@ export const renderDetail = (l, isFavorite) => `
   <div class="gallery">
     <button type="button" class="gallery-main" data-action="gallery-open" data-index="0" aria-label="Ver fotos en grande">
       ${l.photo ? `<img src="${escapeHtml(l.photo)}" alt="">` : `<span class="muted">Sin fotos</span>`}
+      ${newTag(l)}
     </button>
     <div class="thumbs"></div>
   </div>
