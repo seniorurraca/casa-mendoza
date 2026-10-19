@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Casa Mendoza</title>
+  <meta name="description" content="Oportunidades de casas y terrenos en el Gran Mendoza, ordenadas por puntaje.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Casa Mendoza</h1>
+    <p id="summary" class="muted">Cargando avisos…</p>
+  </header>
+
+  <form id="filters">
+    <label>Precio mín. (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
+    <label>Precio máx. (USD)<input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric"></label>
+    <label>Tipo
+      <select name="type"><option value="">Casas y terrenos</option><option value="casa">Casas</option><option value="terreno">Terrenos</option></select>
+    </label>
+    <label>Departamento<select name="department"><option value="">Todos</option></select></label>
+    <label>Ordenar
+      <select name="sort">
+        <option value="score">Mejor puntaje</option>
+        <option value="price">Menor precio</option>
+        <option value="discount">Más barato vs zona</option>
+        <option value="newest">Más nuevos</option>
+      </select>
+    </label>
+    <label class="range">Máx. al centro <output id="maxMinutes-out"></output><input type="range" name="maxMinutes" min="5" max="30" step="1"></label>
+    <div class="checks">
+      <label><input type="checkbox" name="onlyCredito"> Solo apto crédito</label>
+      <label><input type="checkbox" name="onlyPatio"> Solo con patio</label>
+      <label><input type="checkbox" name="hideSuspicious"> Ocultar precios sospechosos</label>
+      <label><input type="checkbox" name="onlyFavorites"> Solo favoritos</label>
+      <button type="reset" class="btn">Restablecer</button>
+    </div>
+  </form>
+
+  <main id="list"></main>
+  <button id="more" class="btn more" hidden>Ver más</button>
+
+  <footer class="muted">Datos de Inmoclick. Precios publicados, no de cierre. Minutos estimados en línea recta × 1,8.</footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

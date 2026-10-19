@@ -1,0 +1,10 @@
+{
+  "name": "casa-mendoza",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "scrape": "node scraper/index.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
