@@ -23,7 +23,7 @@ Todo se ajusta en `config.json`:
 
 - `maxMinutes`, `minutesPerKm`: radio al centro.
 - `departments`: departamentos permitidos.
-- `dangerZones.high` descarta y `dangerZones.medium` penaliza. Son regex sobre dirección y título.
+- `dangerZones`: es la lista base de barrios peligrosos. Cada uno tiene `name`, `pattern` (regex sobre dirección y título) y `level`. `high` oculta el aviso y `medium` lo advierte y le resta puntos. Desde la página (⚙ Configuración) podés activar o desactivar cada barrio, o agregar otros. Esos cambios se guardan en tu navegador.
 - `terreno`: tope de precio y superficie mínima para terrenos.
 - `features`: regex para detectar apto crédito, patio, cochera, posesión y "a reciclar".
 - `scoring`: pesos del puntaje.

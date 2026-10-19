@@ -19,6 +19,16 @@ test("parses listing attributes from article cards", () => {
   assert.match(first.locationText, /alto dorrego/);
 });
 
+test("merges embedded JSON fields into listings", () => {
+  const [first, second] = parseListings(html, "casa", 1535);
+  assert.equal(first.publishedAt, "2026-10-07");
+  assert.equal(first.agency, "COCUCCI SA");
+  assert.equal(first.creditoFlag, null);
+  assert.equal(second.creditoFlag, true);
+  assert.equal(first.photosApi, "https://inmoclick.com/json/inmuebles/fotos?usuario=17&propiedad=19310");
+  assert.match(first.description, /APTA CREDITO HIPOTECARIO/);
+});
+
 test("parses every card in the page", () => {
   assert.equal(parseListings(html, "casa", 1535).length, 2);
 });

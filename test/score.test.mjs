@@ -43,10 +43,10 @@ test("terrenos are scored only on price and proximity", () => {
   assert.deepEqual(labels, ["Precio vs zona", "Cercanía"]);
 });
 
-test("area rules discard far, dangerous, priceless and out-of-area listings", () => {
+test("area rules discard far, priceless and out-of-area listings", () => {
   const reason = overrides => discardReason(build(overrides), config, AREA_RULES);
   assert.equal(reason({ lat: -33.2, lng: -68.9 }), "lejos del centro");
-  assert.equal(reason({ locationText: "barrio lihue" }), "zona peligrosa");
+  assert.equal(reason({ locationText: "barrio lihue" }), null);
   assert.equal(reason({ usd: null }), "sin precio");
   assert.equal(reason({ department: "San Rafael" }), "fuera de Gran Mendoza");
   assert.equal(reason({ department: "Guaymallén" }), null);

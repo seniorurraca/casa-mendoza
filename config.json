@@ -26,10 +26,22 @@
     "reciclar": ["(a|para) reciclar", "(a )?refaccionar"]
   },
 
-  "dangerZones": {
-    "high": ["la gloria", "campo papa", "huarpe", "lihue", "algarrobal", "(barrio|b°|bo\\.?) san martin", "la favorita", "(barrio|b°) flores", "(barrio|b°) olivares"],
-    "medium": ["sargento cabral", "escorihuela", "26 de enero", "tres estrellas", "costa esperanza"]
-  },
+  "dangerZones": [
+    { "name": "La Gloria (Godoy Cruz)", "pattern": "la gloria", "level": "high" },
+    { "name": "Campo Papa (Godoy Cruz)", "pattern": "campo papa", "level": "high" },
+    { "name": "Huarpes (Godoy Cruz)", "pattern": "huarpe", "level": "high" },
+    { "name": "Lihué (Las Heras)", "pattern": "lihue", "level": "high" },
+    { "name": "El Algarrobal (Las Heras)", "pattern": "algarrobal", "level": "high" },
+    { "name": "Barrio San Martín (Capital)", "pattern": "(barrio|b°|bo\\.?) san martin", "level": "high" },
+    { "name": "La Favorita (Capital)", "pattern": "la favorita", "level": "high" },
+    { "name": "Barrio Flores (Capital)", "pattern": "(barrio|b°) flores", "level": "high" },
+    { "name": "Barrio Olivares (Capital)", "pattern": "(barrio|b°) olivares", "level": "high" },
+    { "name": "Sargento Cabral (Godoy Cruz)", "pattern": "sargento cabral", "level": "medium" },
+    { "name": "Escorihuela (Las Heras)", "pattern": "escorihuela", "level": "medium" },
+    { "name": "26 de Enero (Las Heras)", "pattern": "26 de enero", "level": "medium" },
+    { "name": "Tres Estrellas (Guaymallén)", "pattern": "tres estrellas", "level": "medium" },
+    { "name": "Costa Esperanza (Guaymallén)", "pattern": "costa esperanza", "level": "medium" }
+  ],
 
   "segment": {
     "minSamples": 5,
@@ -44,7 +56,6 @@
     "proximity": { "pts": 10, "fullUntilMin": 10 },
     "size": { "pts": 10, "minDorm": 2, "minM2": 70 },
     "cochera": 5,
-    "penalties": { "posesion": -30, "reciclar": -10, "zonaMedia": -15 },
-    "suspiciousDiscount": 0.55
+    "penalties": { "posesion": -30, "reciclar": -10, "zonaMedia": -15 },    "suspiciousDiscount": 0.55
   }
 }

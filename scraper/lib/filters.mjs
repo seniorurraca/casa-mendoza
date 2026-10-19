@@ -4,7 +4,6 @@ export const AREA_RULES = [
   ["sin precio", (l) => !l.usd],
   ["fuera de Gran Mendoza", (l, c) => !c.departments.map(normalize).includes(normalize(l.department))],
   ["lejos del centro", (l, c) => l.minutes !== null && l.minutes > c.maxMinutes],
-  ["zona peligrosa", (l) => l.risk === "high"],
 ];
 
 export const OFFER_RULES = [

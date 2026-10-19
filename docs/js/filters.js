@@ -19,6 +19,7 @@ const SORTERS = {
 };
 
 const matches = (l, f, favorites) =>
+  l.zone?.level !== "high" &&
   l.usd >= f.minUsd &&
   l.usd <= f.maxUsd &&
   (!f.type || l.type === f.type) &&

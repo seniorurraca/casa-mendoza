@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
 import * as inmoclick from "./sources/inmoclick.mjs";
 import { getUsdRate } from "./lib/currency.mjs";
@@ -9,10 +9,11 @@ import { buildMarket, zoneMedian } from "./lib/market.mjs";
 import { scoreListing } from "./lib/score.mjs";
 import { readPrevious, withHistory } from "./lib/history.mjs";
 
-const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "usd", "priceRaw", "supT", "supC", "dorm", "banos",
-  "lat", "lng", "department", "address", "features", "minutes", "risk", "ppm"];
+const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "photosApi", "usd", "priceRaw", "supT", "supC", "dorm", "banos",
+  "lat", "lng", "department", "address", "locationText", "publishedAt", "agency", "features", "minutes", "ppm"];
 
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k]]));
+const writeJson = (path, value) => writeFileSync(path, JSON.stringify(value));
 
 const { values: args } = parseArgs({ options: { "max-pages": { type: "string" } } });
 const config = JSON.parse(readFileSync("config.json", "utf8"));
@@ -36,10 +37,13 @@ const result = {
   generatedAt: new Date().toISOString(),
   usdRate,
   stats: { scanned: scraped.length, kept: listings.length, discarded: { ...area.discarded, ...offer.discarded } },
+  dangerZones: config.dangerZones,
+  zonePenalty: config.scoring.penalties.zonaMedia,
   market,
   listings,
 };
 
 mkdirSync(dirname(config.output), { recursive: true });
-writeFileSync(config.output, JSON.stringify(result));
+writeJson(config.output, result);
+writeJson(join(dirname(config.output), "details.json"), Object.fromEntries(offer.kept.map(l => [l.id, l.description])));
 console.log(JSON.stringify(result.stats, null, 2));

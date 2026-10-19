@@ -25,15 +25,10 @@ test("detects posesion and reciclar traps", () => {
   assert.equal(features.reciclar, true);
 });
 
-test("classifies dangerous zones from location text only", () => {
-  assert.equal(enrichText("", { locationText: "barrio la gloria godoy cruz" }).risk, "high");
-  assert.equal(enrichText("", { locationText: "b° sargento cabral" }).risk, "medium");
-  assert.equal(enrichText("cerca de la gloria").risk, null);
-});
-
-test("san martin street is not barrio san martin", () => {
-  assert.equal(enrichText("", { locationText: "av. san martin 1200" }).risk, null);
-  assert.equal(enrichText("", { locationText: "barrio san martin" }).risk, "high");
+test("structured credito flag overrides text", () => {
+  assert.equal(enrichText("apta credito", { creditoFlag: false }).features.credito, false);
+  assert.equal(enrichText("", { creditoFlag: true }).features.credito, true);
+  assert.equal(enrichText("apta credito", { creditoFlag: null }).features.credito, true);
 });
 
 test("price per m2 uses covered area for casas and total area for terrenos", () => {

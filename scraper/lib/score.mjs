@@ -38,7 +38,6 @@ function penaltiesFor(listing, { penalties }) {
   return [
     ["Posesión / sin escritura", penalties.posesion, listing.features.posesion],
     ["A reciclar", penalties.reciclar, listing.features.reciclar],
-    ["Zona a verificar", penalties.zonaMedia, listing.risk === "medium"],
   ].filter(([, , applies]) => applies).map(([label, pts]) => ({ label, pts }));
 }
 
