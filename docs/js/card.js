@@ -1,12 +1,12 @@
 import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, scoreTone, sources, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, photoBadge, scoreTone, sources, title } from "./listing-view.js";
 
 export const renderCard = (l, isFavorite) => `
 <article class="card" data-id="${escapeHtml(l.id)}">
   <button type="button" class="photo" data-action="carousel" aria-label="Ver fotos">
     ${l.photo ? `<img src="${escapeHtml(l.photo)}" alt="" loading="lazy">` : ""}
     <span class="score ${scoreTone(l.score)}">${l.score}</span>
-    <span class="photo-hint">Ver fotos</span>
+    ${photoBadge(l)}
   </button>
   <div class="body">
     <div class="head">
@@ -14,15 +14,17 @@ export const renderCard = (l, isFavorite) => `
       <strong class="price">${formatUsd(l.usd)}</strong>
     </div>
     <p class="address">${escapeHtml(l.address)}</p>
-    <p class="sources">${sources(l)}</p>
     <p class="facts">${facts(l)}</p>
     <div class="chips">${chips(l)}</div>
     <details><summary>Por qué este puntaje</summary>${breakdownList(l)}</details>
-    <div class="actions">
-      <button type="button" class="btn primary" data-action="detail">Detalles</button>
-      ${avisoLink(l)}
-      ${mapsLink(l)}
-      ${favButton(l, isFavorite)}
+    <div class="card-footer">
+      <p class="sources">${sources(l)}</p>
+      <div class="actions">
+        <button type="button" class="btn primary" data-action="detail">Ver detalles</button>
+        ${mapsLink(l)}
+        ${avisoLink(l)}
+        ${favButton(l, isFavorite)}
+      </div>
     </div>
   </div>
 </article>`;

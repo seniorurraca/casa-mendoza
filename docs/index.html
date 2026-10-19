@@ -19,10 +19,9 @@
   <form id="filters">
     <label>Precio mín. (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
     <label>Precio máx. (USD)<input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric"></label>
-    <label>Tipo
-      <select name="type"><option value="">Casas y terrenos</option><option value="casa">Casas</option><option value="terreno">Terrenos</option></select>
-    </label>
-    <label>Departamento<select name="department"><option value="">Todos</option></select></label>
+    <div class="field" id="types-select"></div>
+    <div class="field" id="departments-select"></div>
+    <div class="field" id="sources-select"></div>
     <label>Ordenar
       <select name="sort">
         <option value="score">Mejor puntaje</option>

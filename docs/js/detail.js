@@ -46,8 +46,8 @@ export const renderDetail = (l, isFavorite) => `
   </section>
   <details><summary>Por qué este puntaje</summary>${breakdownList(l)}</details>
   <div class="actions sticky">
-    ${avisoLink(l, "Ver aviso original", "btn primary")}
-    ${mapsLink(l)}
+    ${avisoLink(l, { text: "Ver aviso original", className: "btn primary" })}
+    ${mapsLink(l, { text: "Google Maps", className: "btn" })}
     ${favButton(l, isFavorite)}
   </div>
 </div>`;

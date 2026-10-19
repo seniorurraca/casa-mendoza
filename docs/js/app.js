@@ -1,4 +1,5 @@
-import { DEFAULT_FILTERS, applyFilters } from "./filters.js";
+import { DEFAULT_FILTERS, applyFilters, loadFilters, sourcesOf } from "./filters.js";
+import { createMultiSelect } from "./multiselect.js";
 import { renderCard } from "./card.js";
 import { renderDetail, renderThumbs } from "./detail.js";
 import { createCarousel } from "./carousel.js";
@@ -6,7 +7,7 @@ import { createSettings } from "./settings.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatUsd } from "./format.js";
-import { title } from "./listing-view.js";
+import { SOURCE_LABEL, TYPE_LABEL, title } from "./listing-view.js";
 import { load, save } from "./storage.js";
 
 const FILTERS_KEY = "casa-mendoza:filters";
@@ -24,7 +25,8 @@ const carousel = createCarousel(document.querySelector("#carousel"));
 let data = { listings: [] };
 let rawListings = [];
 let listings = [];
-let filters = { ...DEFAULT_FILTERS, ...load(FILTERS_KEY, {}) };
+let filters = loadFilters(load(FILTERS_KEY, {}));
+let multiSelects = [];
 let favorites = new Set(load(FAVORITES_KEY, []));
 let zonePrefs = { ...DEFAULT_ZONE_PREFS, ...load(ZONES_KEY, {}) };
 let visible = PAGE_SIZE;
@@ -34,16 +36,34 @@ const fieldValue = el => (el.type === "checkbox" ? el.checked : el.type === "num
 
 function syncForm() {
   for (const el of form.elements) {
-    if (!(el.name in filters)) continue;
+    if (!(el.name in filters) || Array.isArray(filters[el.name])) continue;
     if (el.type === "checkbox") el.checked = filters[el.name];
     else el.value = filters[el.name];
   }
   form.querySelector("#maxMinutes-out").textContent = `${filters.maxMinutes} min`;
 }
 
-function fillDepartments() {
-  const departments = [...new Set(rawListings.map(l => l.department))].sort();
-  form.department.insertAdjacentHTML("beforeend", departments.map(d => `<option>${d}</option>`).join(""));
+function setFilters(next) {
+  filters = next;
+  save(FILTERS_KEY, filters);
+  visible = PAGE_SIZE;
+  syncForm();
+  render();
+}
+
+const optionsFrom = (values, labels = {}) => [...new Set(values)].sort().map(value => ({ value, label: labels[value] ?? value }));
+
+function createFilterSelects() {
+  const specs = [
+    ["types", "Tipo", optionsFrom(rawListings.map(l => l.type), TYPE_LABEL)],
+    ["departments", "Departamento", optionsFrom(rawListings.map(l => l.department))],
+    ["sources", "Portales", optionsFrom(rawListings.flatMap(sourcesOf), SOURCE_LABEL)],
+  ];
+  multiSelects = specs.map(([name, label, options]) => createMultiSelect(document.querySelector(`#${name}-select`), {
+    name, label, options,
+    getSelected: () => filters[name],
+    onChange: selected => setFilters({ ...filters, [name]: selected }),
+  }));
 }
 
 function recomputeZones() {
@@ -94,19 +114,14 @@ function selectThumb(index) {
 }
 
 form.addEventListener("input", event => {
-  filters = { ...filters, [event.target.name]: fieldValue(event.target) };
-  save(FILTERS_KEY, filters);
-  visible = PAGE_SIZE;
-  syncForm();
-  render();
+  if (!event.target.name) return;
+  setFilters({ ...filters, [event.target.name]: fieldValue(event.target) });
 });
 
 form.addEventListener("reset", event => {
   event.preventDefault();
-  filters = { ...DEFAULT_FILTERS };
-  save(FILTERS_KEY, filters);
-  syncForm();
-  render();
+  setFilters({ ...DEFAULT_FILTERS });
+  multiSelects.forEach(m => m.render());
 });
 
 list.addEventListener("click", event => {
@@ -150,6 +165,6 @@ const settings = createSettings(document.querySelector("#settings"), {
 });
 document.querySelector("#open-settings").addEventListener("click", () => settings.open());
 
-fillDepartments();
+createFilterSelects();
 syncForm();
 render();

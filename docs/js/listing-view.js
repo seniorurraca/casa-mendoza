@@ -1,9 +1,10 @@
 import { daysSince, escapeHtml, formatPercent, formatUsd } from "./format.js";
 import { mapsUrl } from "./maps.js";
+import { ICONS } from "./icons.js";
 
 const NEW_DAYS = 3;
-const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
-const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup" };
+export const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
+export const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup" };
 
 const sourceLink = (source, url) =>
   `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${SOURCE_LABEL[source] ?? escapeHtml(source)}</a>`;
@@ -45,12 +46,21 @@ export function facts(l) {
 export const breakdownList = l =>
   `<ul class="breakdown">${l.breakdown.map(b => `<li><span>${escapeHtml(b.label)}</span><span>${b.pts > 0 ? "+" : ""}${b.pts}</span></li>`).join("")}</ul>`;
 
-const externalLink = (href, label, className) =>
-  `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener">${label}</a>`;
+const externalLink = (href, icon, { text, className, label }) =>
+  `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener" title="${label}" aria-label="${label}">${icon}${text ? `<span>${text}</span>` : ""}</a>`;
 
-export const avisoLink = (l, label = "Ver aviso", className = "btn") => externalLink(l.url, label, className);
+export const avisoLink = (l, { text = "", className = "icon-btn" } = {}) =>
+  externalLink(l.url, ICONS.external, { text, className, label: "Abrir aviso original" });
 
-export const mapsLink = l => externalLink(mapsUrl(l), "Google Maps", "btn");
+export const mapsLink = (l, { text = "", className = "icon-btn" } = {}) =>
+  externalLink(mapsUrl(l), ICONS.map, { text, className, label: "Ver en Google Maps" });
 
-export const favButton = (l, isFavorite) =>
-  `<button type="button" class="btn fav ${isFavorite ? "on" : ""}" data-fav="${escapeHtml(l.id)}" aria-label="Favorito">${isFavorite ? "★" : "☆"}</button>`;
+export const favButton = (l, isFavorite) => {
+  const label = isFavorite ? "Quitar de favoritos" : "Guardar en favoritos";
+  return `<button type="button" class="icon-btn fav ${isFavorite ? "on" : ""}" data-fav="${escapeHtml(l.id)}" title="${label}" aria-label="${label}" aria-pressed="${isFavorite}">${ICONS.star}</button>`;
+};
+
+export function photoBadge(l) {
+  if (l.photoCount === null || l.photoCount === undefined) return `<span class="photo-badge">${ICONS.camera}</span>`;
+  return l.photoCount > 1 ? `<span class="photo-badge">${ICONS.camera}1/${l.photoCount}</span>` : "";
+}
