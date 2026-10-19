@@ -1,5 +1,5 @@
 import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, scoreTone, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, facts, favButton, mapsLink, scoreTone, sources, title } from "./listing-view.js";
 
 export const renderCard = (l, isFavorite) => `
 <article class="card" data-id="${escapeHtml(l.id)}">
@@ -14,6 +14,7 @@ export const renderCard = (l, isFavorite) => `
       <strong class="price">${formatUsd(l.usd)}</strong>
     </div>
     <p class="address">${escapeHtml(l.address)}</p>
+    <p class="sources">${sources(l)}</p>
     <p class="facts">${facts(l)}</p>
     <div class="chips">${chips(l)}</div>
     <details><summary>Por qué este puntaje</summary>${breakdownList(l)}</details>

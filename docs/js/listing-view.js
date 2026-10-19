@@ -3,6 +3,12 @@ import { mapsUrl } from "./maps.js";
 
 const NEW_DAYS = 3;
 const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
+const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup" };
+
+const sourceLink = (source, url) =>
+  `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${SOURCE_LABEL[source] ?? escapeHtml(source)}</a>`;
+
+export const sources = l => [sourceLink(l.source, l.url), ...(l.alsoOn ?? []).map(o => sourceLink(o.source, o.url))].join(" · ");
 
 export const title = l => `${TYPE_LABEL[l.type]} en ${escapeHtml(l.department)}`;
 

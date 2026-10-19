@@ -1,5 +1,5 @@
 import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, scoreTone, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, scoreTone, sources, title } from "./listing-view.js";
 
 const formatDate = iso => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("es-AR") : null);
 
@@ -19,7 +19,8 @@ function specs(l) {
     ["Precio anterior", l.prevUsd && formatUsd(l.prevUsd)],
     ["Inmobiliaria", l.agency],
   ];
-  return rows.filter(([, value]) => value).map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("");
+  return rows.filter(([, value]) => value).map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("") +
+    `<dt>Publicado en</dt><dd>${sources(l)}</dd>`;
 }
 
 export const renderDetail = (l, isFavorite) => `

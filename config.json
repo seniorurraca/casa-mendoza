@@ -2,60 +2,194 @@
   "output": "docs/data/listings.json",
   "usdRate": "oficial",
   "maxUsdStored": 150000,
-  "centro": { "lat": -32.8895, "lng": -68.8458 },
+  "centro": {
+    "lat": -32.8895,
+    "lng": -68.8458
+  },
   "maxMinutes": 30,
   "minutesPerKm": 1.8,
-  "departments": ["Capital", "Godoy Cruz", "Guaymallen", "Las Heras", "Lujan de Cuyo", "Maipu"],
-  "terreno": { "maxUsd": 25000, "minM2": 200 },
-
+  "departments": [
+    "Capital",
+    "Godoy Cruz",
+    "Guaymallen",
+    "Las Heras",
+    "Lujan de Cuyo",
+    "Maipu"
+  ],
+  "terreno": {
+    "maxUsd": 25000,
+    "minM2": 200
+  },
   "sources": {
     "inmoclick": {
-      "groups": { "casas": "casa", "lotes-y-terrenos": "terreno" },
+      "groups": {
+        "casas": "casa",
+        "lotes-y-terrenos": "terreno"
+      },
       "delayMs": 3000,
       "maxPages": 80,
-      "retry": { "retries": 2, "backoffMs": 60000 }
+      "retry": {
+        "retries": 2,
+        "backoffMs": 60000
+      }
+    },
+    "inmoup": {
+      "groups": {
+        "casas": "casa",
+        "lotes-y-terrenos": "terreno"
+      },
+      "delayMs": 3000,
+      "maxPages": 300,
+      "retry": {
+        "retries": 2,
+        "backoffMs": 60000
+      }
     }
   },
-
   "features": {
-    "credito": ["apt[oa] (para )?credito", "acepta credito", "hipotecari"],
-    "noCredito": ["no (es )?apt[oa] (para )?(credito|hipotecari)", "no acepta credito"],
-    "patio": ["patio", "jardin", "parque"],
-    "cochera": ["cochera", "garage", "garaje"],
-    "posesion": ["posesion", "posesori", "boleto", "sin escritura"],
-    "reciclar": ["(a|para) reciclar", "(a )?refaccionar"]
+    "credito": [
+      "apt[oa] (para )?credito",
+      "acepta credito",
+      "hipotecari"
+    ],
+    "noCredito": [
+      "no (es )?apt[oa] (para )?(credito|hipotecari)",
+      "no acepta credito"
+    ],
+    "patio": [
+      "patio",
+      "jardin",
+      "parque"
+    ],
+    "cochera": [
+      "cochera",
+      "garage",
+      "garaje"
+    ],
+    "posesion": [
+      "posesion",
+      "posesori",
+      "boleto",
+      "sin escritura"
+    ],
+    "reciclar": [
+      "(a|para) reciclar",
+      "(a )?refaccionar"
+    ]
   },
-
   "dangerZones": [
-    { "name": "La Gloria (Godoy Cruz)", "pattern": "la gloria", "level": "high" },
-    { "name": "Campo Papa (Godoy Cruz)", "pattern": "campo papa", "level": "high" },
-    { "name": "Huarpes (Godoy Cruz)", "pattern": "huarpe", "level": "high" },
-    { "name": "Lihué (Las Heras)", "pattern": "lihue", "level": "high" },
-    { "name": "El Algarrobal (Las Heras)", "pattern": "algarrobal", "level": "high" },
-    { "name": "Barrio San Martín (Capital)", "pattern": "(barrio|b°|bo\\.?) san martin", "level": "high" },
-    { "name": "La Favorita (Capital)", "pattern": "la favorita", "level": "high" },
-    { "name": "Barrio Flores (Capital)", "pattern": "(barrio|b°) flores", "level": "high" },
-    { "name": "Barrio Olivares (Capital)", "pattern": "(barrio|b°) olivares", "level": "high" },
-    { "name": "Sargento Cabral (Godoy Cruz)", "pattern": "sargento cabral", "level": "medium" },
-    { "name": "Escorihuela (Las Heras)", "pattern": "escorihuela", "level": "medium" },
-    { "name": "26 de Enero (Las Heras)", "pattern": "26 de enero", "level": "medium" },
-    { "name": "Tres Estrellas (Guaymallén)", "pattern": "tres estrellas", "level": "medium" },
-    { "name": "Costa Esperanza (Guaymallén)", "pattern": "costa esperanza", "level": "medium" }
+    {
+      "name": "La Gloria (Godoy Cruz)",
+      "pattern": "la gloria",
+      "level": "high"
+    },
+    {
+      "name": "Campo Papa (Godoy Cruz)",
+      "pattern": "campo papa",
+      "level": "high"
+    },
+    {
+      "name": "Huarpes (Godoy Cruz)",
+      "pattern": "huarpe",
+      "level": "high"
+    },
+    {
+      "name": "Lihué (Las Heras)",
+      "pattern": "lihue",
+      "level": "high"
+    },
+    {
+      "name": "El Algarrobal (Las Heras)",
+      "pattern": "algarrobal",
+      "level": "high"
+    },
+    {
+      "name": "Barrio San Martín (Capital)",
+      "pattern": "(barrio|b°|bo\\.?) san martin",
+      "level": "high"
+    },
+    {
+      "name": "La Favorita (Capital)",
+      "pattern": "la favorita",
+      "level": "high"
+    },
+    {
+      "name": "Barrio Flores (Capital)",
+      "pattern": "(barrio|b°) flores",
+      "level": "high"
+    },
+    {
+      "name": "Barrio Olivares (Capital)",
+      "pattern": "(barrio|b°) olivares",
+      "level": "high"
+    },
+    {
+      "name": "Sargento Cabral (Godoy Cruz)",
+      "pattern": "sargento cabral",
+      "level": "medium"
+    },
+    {
+      "name": "Escorihuela (Las Heras)",
+      "pattern": "escorihuela",
+      "level": "medium"
+    },
+    {
+      "name": "26 de Enero (Las Heras)",
+      "pattern": "26 de enero",
+      "level": "medium"
+    },
+    {
+      "name": "Tres Estrellas (Guaymallén)",
+      "pattern": "tres estrellas",
+      "level": "medium"
+    },
+    {
+      "name": "Costa Esperanza (Guaymallén)",
+      "pattern": "costa esperanza",
+      "level": "medium"
+    }
   ],
-
   "segment": {
     "minSamples": 5,
-    "casa": { "minUsd": 15000, "maxUsd": 90000, "minM2": 30, "maxM2": 1000 },
-    "terreno": { "minUsd": 3000, "maxUsd": 90000, "minM2": 100, "maxM2": 20000 }
+    "casa": {
+      "minUsd": 15000,
+      "maxUsd": 90000,
+      "minM2": 30,
+      "maxM2": 1000
+    },
+    "terreno": {
+      "minUsd": 3000,
+      "maxUsd": 90000,
+      "minM2": 100,
+      "maxM2": 20000
+    }
   },
-
   "scoring": {
-    "priceVsZone": { "pts": 35, "minDiscount": -0.2, "maxDiscount": 0.4 },
+    "priceVsZone": {
+      "pts": 35,
+      "minDiscount": -0.2,
+      "maxDiscount": 0.4
+    },
     "credito": 25,
-    "patio": { "pts": 15, "freeM2": 50 },
-    "proximity": { "pts": 10, "fullUntilMin": 10 },
-    "size": { "pts": 10, "minDorm": 2, "minM2": 70 },
+    "patio": {
+      "pts": 15,
+      "freeM2": 50
+    },
+    "proximity": {
+      "pts": 10,
+      "fullUntilMin": 10
+    },
+    "size": {
+      "pts": 10,
+      "minDorm": 2,
+      "minM2": 70
+    },
     "cochera": 5,
-    "penalties": { "posesion": -30, "reciclar": -10, "zonaMedia": -15 },    "suspiciousDiscount": 0.55
+    "penalties": {
+      "posesion": -30,
+      "reciclar": -10,
+      "zonaMedia": -15
+    },
+    "suspiciousDiscount": 0.55
   }
 }

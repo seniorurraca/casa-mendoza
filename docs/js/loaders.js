@@ -1,15 +1,24 @@
 const photoCache = new Map();
-let descriptions = null;
+let details = null;
+
+async function loadDetails(id) {
+  details ??= fetch("data/details.json").then(res => res.json()).catch(() => ({}));
+  const entry = (await details)[id];
+  return typeof entry === "string" ? { description: entry } : entry ?? {};
+}
+
+async function fetchApiPhotos(url) {
+  try {
+    const { fotos } = await (await fetch(url)).json();
+    return fotos ?? [];
+  } catch {
+    return [];
+  }
+}
 
 async function fetchPhotos(listing) {
-  const fallback = listing.photo ? [listing.photo] : [];
-  try {
-    const res = await fetch(listing.photosApi);
-    const { fotos } = await res.json();
-    return fotos?.length ? fotos : fallback;
-  } catch {
-    return fallback;
-  }
+  const photos = listing.photosApi ? await fetchApiPhotos(listing.photosApi) : (await loadDetails(listing.id)).photos ?? [];
+  return photos.length ? photos : [listing.photo].filter(Boolean);
 }
 
 export function loadPhotos(listing) {
@@ -17,7 +26,4 @@ export function loadPhotos(listing) {
   return photoCache.get(listing.id);
 }
 
-export async function loadDescription(id) {
-  descriptions ??= fetch("data/details.json").then(res => res.json()).catch(() => ({}));
-  return (await descriptions)[id] ?? "";
-}
+export const loadDescription = async id => (await loadDetails(id)).description ?? "";

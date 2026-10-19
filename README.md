@@ -1,6 +1,6 @@
 # Casa Mendoza
 
-Buscador personal de casas y terrenos en el Gran Mendoza. Scrapea Inmoclick una vez por día, descarta lo lejano o peligroso y ordena por puntaje de oportunidad.
+Buscador personal de casas y terrenos en el Gran Mendoza. Scrapea Inmoclick e Inmoup una vez por día, junta los avisos repetidos entre portales, descarta lo lejano o peligroso y ordena por puntaje de oportunidad.
 
 ## Cómo funciona
 

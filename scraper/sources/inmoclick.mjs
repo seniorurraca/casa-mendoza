@@ -1,4 +1,5 @@
 import { fetchText, sleep, withRetry } from "../lib/http.mjs";
+import { fetchGroups } from "../lib/sources.mjs";
 import { parsePrice } from "../lib/currency.mjs";
 import { decodeEntities, normalize } from "../lib/text.mjs";
 
@@ -89,8 +90,4 @@ async function fetchGroup(group, type, { usdRate, delayMs, maxPages, retry }) {
   return listings;
 }
 
-export async function fetchAll({ groups, ...options }) {
-  const all = [];
-  for (const [group, type] of Object.entries(groups)) all.push(...await fetchGroup(group, type, options));
-  return [...new Map(all.map(listing => [listing.id, listing])).values()];
-}
+export const fetchAll = ({ groups, ...options }) => fetchGroups(groups, fetchGroup, options);
