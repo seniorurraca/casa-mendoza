@@ -21,7 +21,7 @@ export function parseEmbedded(html) {
   const start = html.indexOf(EMBEDDED_MARKER);
   if (start < 0) return new Map();
   const line = html.slice(start + EMBEDDED_MARKER.length, html.indexOf("\n", start)).trim().replace(/;$/, "");
-  const items = JSON.parse(line);
+  const items = Object.values(JSON.parse(line));
   return new Map(items.map(p => [`${p.usuario_id}-${p.propiedad_id}`, {
     publishedAt: p.prp_alta?.slice(0, 10) ?? null,
     agency: p.nombre ?? null,

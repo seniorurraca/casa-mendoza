@@ -29,6 +29,12 @@ test("merges embedded JSON fields into listings", () => {
   assert.match(first.description, /APTA CREDITO HIPOTECARIO/);
 });
 
+test("embedded JSON serialized as object with sparse keys", () => {
+  const sparse = html.replace(/var propiedades = (\[.*\]);/, (_, arr) => `var propiedades = ${JSON.stringify(Object.fromEntries(JSON.parse(arr).map((p, i) => [i * 3, p])))};`);
+  assert.notEqual(sparse, html);
+  assert.equal(parseListings(sparse, "casa", 1535)[1].creditoFlag, true);
+});
+
 test("parses every card in the page", () => {
   assert.equal(parseListings(html, "casa", 1535).length, 2);
 });
