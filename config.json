@@ -31,6 +31,10 @@
       "retry": {
         "retries": 2,
         "backoffMs": 60000
+      },
+      "quick": {
+        "order": "recent",
+        "maxPages": 3
       }
     },
     "inmoup": {
@@ -43,7 +47,8 @@
       "retry": {
         "retries": 2,
         "backoffMs": 60000
-      }
+      },
+      "maxUsd": 150000
     }
   },
   "features": {

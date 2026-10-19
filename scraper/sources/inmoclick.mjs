@@ -13,7 +13,9 @@ const capture = (block, regex) => decodeEntities(block.match(regex)?.[1] ?? "").
 const toNumber = value => Number(value) || null;
 const isEnabled = value => Boolean(value) && value !== DISABLED;
 
-const pageUrl = (group, page) => `${BASE_URL}/inmuebles/venta/${group}/mendoza?limit=48&page=${page}`;
+const ORDER_PARAM = { recent: "&ordenar=recientes" };
+
+const pageUrl = (group, page, order) => `${BASE_URL}/inmuebles/venta/${group}/mendoza?limit=48&page=${page}${ORDER_PARAM[order] ?? ""}`;
 const photosApiUrl = (usuario, propiedad) => `${BASE_URL}/json/inmuebles/fotos?usuario=${usuario}&propiedad=${propiedad}`;
 
 export const lastPage = html => Math.max(1, ...[...html.matchAll(/(?:\?|&amp;|&)page=(\d+)/g)].map(m => Number(m[1])));
@@ -44,6 +46,7 @@ function parseArticle(block, type, usdRate, embedded) {
     url: BASE_URL + path,
     photo: attr(block, "data-defer-src") ?? null,
     photosApi: photosApiUrl(usuario, propiedad),
+    photoCount: null,
     priceRaw: attr(block, "precio") ?? "",
     usd: parsePrice(attr(block, "precio"), usdRate),
     supT: toNumber(attr(block, "sup_t")),
@@ -70,21 +73,22 @@ export function parseListings(html, type, usdRate) {
   return html.split("<article").slice(1).map(chunk => parseArticle(chunk.split("</article>")[0], type, usdRate, embedded));
 }
 
-async function fetchPage(group, page, retry) {
+async function fetchPage(group, page, { retry, order }) {
+  const url = pageUrl(group, page, order);
   return withRetry(async () => {
-    const html = await fetchText(pageUrl(group, page));
-    if (!html.includes("<article")) throw new Error(`página sin avisos ${pageUrl(group, page)}`);
+    const html = await fetchText(url);
+    if (!html.includes("<article")) throw new Error(`página sin avisos ${url}`);
     return html;
   }, retry);
 }
 
-async function fetchGroup(group, type, { usdRate, delayMs, maxPages, retry }) {
-  const firstHtml = await fetchPage(group, 1, retry);
+async function fetchGroup(group, type, { usdRate, delayMs, maxPages, ...options }) {
+  const firstHtml = await fetchPage(group, 1, options);
   const pages = Math.min(lastPage(firstHtml), maxPages);
   const listings = parseListings(firstHtml, type, usdRate);
   for (let page = 2; page <= pages; page++) {
     await sleep(delayMs);
-    listings.push(...parseListings(await fetchPage(group, page, retry), type, usdRate));
+    listings.push(...parseListings(await fetchPage(group, page, options), type, usdRate));
     console.log(`inmoclick ${group} ${page}/${pages}`);
   }
   return listings;

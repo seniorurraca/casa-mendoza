@@ -3,7 +3,14 @@ name: Scrape
 on:
   schedule:
     - cron: "0 9 * * *"
+    - cron: "0 1,5,13,17,21 * * *"
   workflow_dispatch:
+    inputs:
+      mode:
+        description: full o quick
+        default: full
+        type: choice
+        options: [full, quick]
 
 permissions:
   contents: write
@@ -22,7 +29,7 @@ jobs:
         with:
           node-version: 24
       - run: npm test
-      - run: npm run scrape
+      - run: npm run scrape -- --mode ${{ github.event.schedule == '0 1,5,13,17,21 * * *' && 'quick' || inputs.mode || 'full' }}
       - name: Commit data
         run: |
           git config user.name "github-actions[bot]"

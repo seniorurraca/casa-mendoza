@@ -6,7 +6,8 @@ const BASE_URL = "https://inmoup.com.ar";
 const CREDITO_FLAG = { Si: true, No: false };
 const DESCRIPTION_REF = /^\$\w+$/;
 
-const pageUrl = (group, page) => `${BASE_URL}/${group}-en-venta-en-mendoza${page > 1 ? `-y-pag-${page}` : ""}`;
+const pageUrl = (group, page, maxUsd) =>
+  `${BASE_URL}/${group}-en-venta-en-mendoza${maxUsd ? `-y-${maxUsd}-o-menos-dolares` : ""}${page > 1 ? `-y-pag-${page}` : ""}`;
 
 function flightPayload(html) {
   return [...html.matchAll(/self\.__next_f\.push\((\[[\s\S]*?\])\)<\/script>/g)]
@@ -60,6 +61,7 @@ function toListing(item, type, usdRate, descriptions) {
     photo: item.img?.[0] ?? null,
     photos: item.img ?? [],
     photosApi: null,
+    photoCount: item.img?.length ?? 0,
     priceRaw: `${item.dolar ? "US$" : "$"} ${item.precio}`,
     usd: item.ocultarPrecio || !item.precio ? null : item.dolar ? item.precio : Math.round(item.precio / usdRate),
     supT: toNumber(service(item, "Superficie Total m2")),
@@ -86,21 +88,22 @@ export function parsePage(html, type, usdRate) {
   return { total, listings: items.map(item => toListing(item, type, usdRate, descriptions)) };
 }
 
-async function fetchPage(group, page, type, usdRate, retry) {
+async function fetchPage(group, page, type, { usdRate, retry, maxUsd }) {
+  const url = pageUrl(group, page, maxUsd);
   return withRetry(async () => {
-    const parsed = parsePage(await fetchText(pageUrl(group, page)), type, usdRate);
-    if (!parsed.listings.length) throw new Error(`página sin avisos ${pageUrl(group, page)}`);
+    const parsed = parsePage(await fetchText(url), type, usdRate);
+    if (!parsed.listings.length) throw new Error(`página sin avisos ${url}`);
     return parsed;
   }, retry);
 }
 
-async function fetchGroup(group, type, { usdRate, delayMs, maxPages, retry }) {
-  const first = await fetchPage(group, 1, type, usdRate, retry);
+async function fetchGroup(group, type, { delayMs, maxPages, ...options }) {
+  const first = await fetchPage(group, 1, type, options);
   const pages = Math.min(Math.ceil(first.total / first.listings.length), maxPages);
   const listings = [...first.listings];
   for (let page = 2; page <= pages; page++) {
     await sleep(delayMs);
-    listings.push(...(await fetchPage(group, page, type, usdRate, retry)).listings);
+    listings.push(...(await fetchPage(group, page, type, options)).listings);
     console.log(`inmoup ${group} ${page}/${pages}`);
   }
   return listings;

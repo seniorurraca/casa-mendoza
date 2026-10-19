@@ -8,43 +8,50 @@ import { enrich } from "./lib/enrich.mjs";
 import { AREA_RULES, OFFER_RULES, partition } from "./lib/filters.mjs";
 import { buildMarket, zoneMedian } from "./lib/market.mjs";
 import { scoreListing } from "./lib/score.mjs";
-import { readPrevious, withHistory } from "./lib/history.mjs";
+import { readPrevious, upsert, withHistory } from "./lib/history.mjs";
 import { dedupe } from "./lib/dedupe.mjs";
+import { sourcesFor } from "./lib/sources.mjs";
 
 const SOURCES = { inmoclick, inmoup };
 
-const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "photosApi", "usd", "priceRaw", "supT", "supC", "dorm", "banos",
+const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "photosApi", "photoCount", "usd", "priceRaw", "supT", "supC", "dorm", "banos",
   "lat", "lng", "department", "address", "locationText", "publishedAt", "agency", "features", "minutes", "ppm", "alsoOn"];
 
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k]]));
 const writeJson = (path, value) => writeFileSync(path, JSON.stringify(value));
 
-const { values: args } = parseArgs({ options: { "max-pages": { type: "string" } } });
+const { values: args } = parseArgs({ options: { "max-pages": { type: "string" }, mode: { type: "string", default: "full" } } });
+const mode = args.mode;
 const config = JSON.parse(readFileSync("config.json", "utf8"));
-const today = new Date().toISOString().slice(0, 10);
+const detailsPath = join(dirname(config.output), "details.json");
+const now = new Date().toISOString();
+const today = now.slice(0, 10);
 
 const usdRate = await getUsdRate(config.usdRate);
 const scraped = [];
-for (const [name, options] of Object.entries(config.sources)) {
+for (const [name, options] of sourcesFor(config.sources, mode)) {
   const maxPages = Number(args["max-pages"] ?? options.maxPages);
   scraped.push(...(await SOURCES[name].fetchAll({ ...options, maxPages, usdRate })).map(l => enrich(l, config)));
 }
 
+const previous = readPrevious(config.output, detailsPath);
 const area = partition(scraped, config, AREA_RULES);
-const unique = dedupe(area.kept);
-const market = buildMarket(unique, config.segment);
+const pool = mode === "full" ? area.kept : upsert(previous.hydrated, area.kept);
+const unique = dedupe(pool);
+const market = mode === "full" ? buildMarket(unique, config.segment) : previous.data.market;
 const offer = partition(unique, config, OFFER_RULES);
-const previous = readPrevious(config.output);
 
 const listings = offer.kept
   .map(l => ({ ...pick(l, PUBLIC_FIELDS), ...scoreListing(l, zoneMedian(market, l, config.segment.minSamples), config.scoring, config.maxMinutes) }))
-  .map(l => withHistory(l, previous, today))
+  .map(l => withHistory(l, previous.byId, today))
   .sort((a, b) => b.score - a.score);
 
+const fullStats = { scanned: scraped.length, duplicates: pool.length - unique.length, kept: listings.length, discarded: { ...area.discarded, ...offer.discarded } };
 const result = {
-  generatedAt: new Date().toISOString(),
+  generatedAt: now,
+  lastFullAt: mode === "full" ? now : previous.data.lastFullAt ?? previous.data.generatedAt,
   usdRate,
-  stats: { scanned: scraped.length, duplicates: area.kept.length - unique.length, kept: listings.length, discarded: { ...area.discarded, ...offer.discarded } },
+  stats: mode === "full" ? fullStats : { ...previous.data.stats, kept: listings.length, quickNew: listings.filter(l => !previous.byId.has(l.id)).length },
   dangerZones: config.dangerZones,
   zonePenalty: config.scoring.penalties.zonaMedia,
   market,
@@ -53,5 +60,5 @@ const result = {
 
 mkdirSync(dirname(config.output), { recursive: true });
 writeJson(config.output, result);
-writeJson(join(dirname(config.output), "details.json"), Object.fromEntries(offer.kept.map(l => [l.id, { description: l.description, photos: l.photos ?? [] }])));
-console.log(JSON.stringify(result.stats, null, 2));
+writeJson(detailsPath, Object.fromEntries(offer.kept.map(l => [l.id, { description: l.description, photos: l.photos ?? [] }])));
+console.log(mode, JSON.stringify(result.stats, null, 2));
