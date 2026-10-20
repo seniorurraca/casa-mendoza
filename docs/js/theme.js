@@ -13,10 +13,11 @@ export const THEMES = [
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 const themeStore = storedValue("casa-mendoza:theme");
 
+const DEFAULT_THEME = "light";
+
 export function resolveTheme(choice, prefersDark) {
-  const known = THEMES.some(t => t.id === choice) && choice !== "system";
-  if (known) return choice;
-  return prefersDark ? "dark" : "light";
+  if (choice === "system") return prefersDark ? "dark" : "light";
+  return THEMES.some(t => t.id === choice) ? choice : DEFAULT_THEME;
 }
 
 export const isDarkTheme = () => document.documentElement.dataset.theme === "dark";
@@ -32,7 +33,7 @@ const option = (theme, current) => `
   </label>`;
 
 export function createThemePicker(container) {
-  const current = () => themeStore.get() ?? "system";
+  const current = () => themeStore.get() ?? DEFAULT_THEME;
   container.innerHTML = `
     <details class="theme-menu">
       <summary class="icon-btn ghost" title="Tema" aria-label="Elegir tema">${ICONS.palette}</summary>
