@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mapsUrl } from "../docs/js/maps.js";
 import { isFresh, tokenClaims } from "../docs/js/google-token.js";
-import { DEFAULT_FILTERS, applyFilters, favoriteListings } from "../docs/js/filters.js";
+import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings } from "../docs/js/filters.js";
 
 const listing = (overrides = {}) => ({
   id: "a", type: "casa", usd: 50000, department: "Godoy Cruz", address: "Calle 1", minutes: 12,
@@ -51,4 +51,9 @@ test("google token claims are read and expiry is checked with a margin", () => {
   assert.equal(isFresh(token, 950_000), false);
   assert.equal(isFresh(null), false);
   assert.equal(tokenClaims("basura"), null);
+});
+
+test("more-filters badge counts only the filters inside the panel", () => {
+  assert.equal(advancedCount(DEFAULT_FILTERS), 0);
+  assert.equal(advancedCount({ ...DEFAULT_FILTERS, minUsd: 20000, departments: ["Maipu"], maxMinutes: 20, onlyCredito: true }), 3);
 });

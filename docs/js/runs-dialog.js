@@ -1,6 +1,7 @@
 import { escapeHtml, formatDateTime } from "./format.js";
 import { SOURCE_LABEL } from "./listing-view.js";
 import { healthOf } from "./runs.js";
+import { closeButton } from "./icons.js";
 
 const MINUTE_MS = 60_000;
 
@@ -31,7 +32,7 @@ const render = runs => {
   return `
   <header class="detail-head">
     <h2>Registro de corridas</h2>
-    <button type="button" class="btn icon" data-action="close" aria-label="Cerrar">✕</button>
+    ${closeButton}
   </header>
   <section>
     <p class="run-health ${health}">${HEALTH_TEXT[health](runs[0])}</p>

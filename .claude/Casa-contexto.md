@@ -129,8 +129,9 @@ worker/src/
 
 ## Frontend
 
-- **Tabs Todos / ★ Favoritos:** Favoritos ignora todos los filtros (y las zonas "Ocultar"), ordena del último guardado al primero (`favoriteListings`) y cuenta los que ya no están publicados. En esa tab se oculta el formulario.
-- **Filtros:** precio mín/máx; Tipo / Departamento / Portales (multi-selección, `[]` = todos); minutos; apto crédito; patio; ocultar sospechosos. Orden: puntaje, precio, descuento vs zona, más nuevos.
+- **Diseño (rediseño 2026-10-20, estilo marketplace tipo Airbnb/Zillow):** barra superior fija (marca, íconos Registro y Configuración, cuenta Google a la derecha: botón GIS o avatar con menú). Hero con resumen. Barra de filtros: segmentado Todo/Casas/Terrenos (`typeChoice` → `filters.types`), "Hasta USD", chips Apto crédito / Con patio / Sin precios dudosos y panel "Más filtros" (mín., departamentos, portales, minutos) con contador (`advancedCount`). Tarjeta: foto 4:3, puntaje arriba-izq., corazón arriba-der., NUEVO abajo-izq.; precio + descuento, hechos con íconos; tocar la tarjeta abre el detalle. Fuente Inter (Google Fonts). Tokens de color en `:root` con modo oscuro. Íconos en HTML estático: `data-icon` + `fillIcons()`.
+- **Tabs Todos / ♥ Favoritos:** Favoritos ignora todos los filtros (y las zonas "Ocultar"), ordena del último guardado al primero (`favoriteListings`) y cuenta los que ya no están publicados. En esa tab se oculta el formulario.
+- **Filtros:** precio mín/máx; Tipo (segmentado); Departamento / Portales (multi-selección, `[]` = todos); minutos; apto crédito; patio; ocultar sospechosos. El `<select name="sort">` está fuera del form (`form="filters"`), por eso el listener de input es en `document` filtrando `target.form`. Orden: puntaje, precio, descuento vs zona, más nuevos.
 - **⚙ Configuración — barrios peligrosos:** la base viene de `config.dangerZones` y el usuario la edita (activar/desactivar, agregar). "Ocultar" (high) saca el aviso; "Advertir" (medium) muestra un chip y resta 15. Matchea contra `locationText` (dirección + slug). Ojo con nombres que también son calles.
 - **Ocultar por ubicación:** en el detalle de un aviso con coordenadas, "Ocultar 200 / 500 m alrededor" (`areaZone`) → zona `high` por radio (haversine), sin saber el nombre del barrio. Pide confirmación con la cantidad de avisos. Se guarda en `prefs.areas` (`casa-mendoza:zones`) y se quita en ⚙ Configuración → "Ocultos por ubicación".
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
@@ -145,7 +146,7 @@ worker/src/
   - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
   - Todo es por navegador: celular y PC son independientes.
-- Cards de alto uniforme: foto 16:9 fija (`object-fit: cover`), título y dirección en 1 línea, datos en máximo 2.
+- Cards: foto 4:3 fija (`object-fit: cover`), título y dirección en 1 línea.
 
 ## Config (`config.json`) — lo más tocado
 

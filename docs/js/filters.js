@@ -49,3 +49,9 @@ export function loadFilters(saved) {
   const known = Object.fromEntries(Object.entries(saved ?? {}).filter(([key]) => key in DEFAULT_FILTERS));
   return { ...DEFAULT_FILTERS, ...known };
 }
+
+const ADVANCED_FILTERS = ["minUsd", "departments", "sources", "maxMinutes"];
+
+const isActive = (value, fallback) => (Array.isArray(value) ? value.length > 0 : value !== fallback);
+
+export const advancedCount = filters => ADVANCED_FILTERS.filter(key => isActive(filters[key], DEFAULT_FILTERS[key])).length;

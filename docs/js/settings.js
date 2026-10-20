@@ -1,4 +1,5 @@
 import { escapeHtml } from "./format.js";
+import { ICONS, closeButton } from "./icons.js";
 import { DEFAULT_ZONE_PREFS, countMatches, customZone } from "./zones.js";
 
 const LEVEL_LABEL = { high: "Ocultar", medium: "Advertir" };
@@ -17,13 +18,13 @@ function render(defaults, prefs, listings) {
   const defaultRows = defaults.map(z => zoneRow(z, countMatches(listings, z),
     `<input type="checkbox" data-zone-toggle="${escapeHtml(z.name)}" ${prefs.disabled.includes(z.name) ? "" : "checked"} aria-label="Activar ${escapeHtml(z.name)}">`)).join("");
   const customRows = prefs.custom.map(z => zoneRow(z, countMatches(listings, z),
-    `<button type="button" class="btn icon small" data-zone-remove="${escapeHtml(z.name)}" aria-label="Quitar ${escapeHtml(z.name)}">✕</button>`)).join("");
+    `<button type="button" class="icon-btn small" data-zone-remove="${escapeHtml(z.name)}" aria-label="Quitar ${escapeHtml(z.name)}">${ICONS.close}</button>`)).join("");
   const areaRows = prefs.areas.map(z => zoneRow(z, countMatches(listings, z),
-    `<button type="button" class="btn icon small" data-area-remove="${escapeHtml(z.id)}" aria-label="Quitar ${escapeHtml(z.name)}">✕</button>`)).join("");
+    `<button type="button" class="icon-btn small" data-area-remove="${escapeHtml(z.id)}" aria-label="Quitar ${escapeHtml(z.name)}">${ICONS.close}</button>`)).join("");
   return `
   <header class="detail-head">
     <h2>Configuración</h2>
-    <button type="button" class="btn icon" data-action="close" aria-label="Cerrar">✕</button>
+    ${closeButton}
   </header>
   <section>
     <h3>Barrios peligrosos</h3>

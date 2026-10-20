@@ -29,17 +29,20 @@ export function chips(l) {
   return list.filter(([show]) => show).map(([, tone, label]) => `<span class="chip ${tone}">${label}</span>`).join("");
 }
 
-export function facts(l) {
+export function factList(l) {
   const items = [
-    l.type === "casa" && l.supC && `${l.supC} m² cub.`,
-    l.supT && `${l.supT} m² terreno`,
-    l.dorm && `${l.dorm} dorm.`,
-    l.minutes !== null && `~${l.minutes} min al centro`,
-    l.ppm && `${formatUsd(l.ppm)}/m²`,
-    discountText(l),
+    [l.dorm, ICONS.bed, `${l.dorm} dorm.`],
+    [l.type === "casa" && l.supC, ICONS.area, `${l.supC} m² cub.`],
+    [l.supT, ICONS.land, `${l.supT} m² terreno`],
+    [l.minutes !== null, ICONS.clock, `${l.minutes} min al centro`],
   ];
-  return items.filter(Boolean).map(escapeHtml).join(" · ");
+  return `<ul class="facts">${items.filter(([show]) => show).map(([, icon, text]) => `<li>${icon}<span>${escapeHtml(text)}</span></li>`).join("")}</ul>`;
 }
+
+export const scorePill = l => `<span class="score-pill ${scoreTone(l.score)}" title="Puntaje de oportunidad">${l.score}<small>pts</small></span>`;
+
+export const discountPill = l =>
+  l.discount === null ? "" : `<span class="discount ${l.discount >= 0 ? "below" : "above"}">${discountText(l)}</span>`;
 
 export const breakdownList = l =>
   `<ul class="breakdown">${l.breakdown.map(b => `<li><span>${escapeHtml(b.label)}</span><span>${b.pts > 0 ? "+" : ""}${b.pts}</span></li>`).join("")}</ul>`;
@@ -55,7 +58,7 @@ export const mapsLink = (l, { text = "", className = "icon-btn" } = {}) =>
 
 export const favButton = (l, isFavorite) => {
   const label = isFavorite ? "Quitar de favoritos" : "Guardar en favoritos";
-  return `<button type="button" class="icon-btn fav ${isFavorite ? "on" : ""}" data-fav="${escapeHtml(l.id)}" title="${label}" aria-label="${label}" aria-pressed="${isFavorite}">${ICONS.star}</button>`;
+  return `<button type="button" class="icon-btn fav ${isFavorite ? "on" : ""}" data-fav="${escapeHtml(l.id)}" title="${label}" aria-label="${label}" aria-pressed="${isFavorite}">${ICONS.heart}</button>`;
 };
 
 export const newTag = l => (l.isNew ? `<span class="new-tag">Nuevo</span>` : "");

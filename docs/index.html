@@ -5,54 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Casa Mendoza</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <meta name="theme-color" content="#1f6f5c">
+  <meta name="theme-color" content="#0f766e">
   <meta name="description" content="Oportunidades de casas y terrenos en el Gran Mendoza, ordenadas por puntaje.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="page-head">
-    <div>
-      <h1>Casa Mendoza</h1>
-      <p id="summary" class="muted">Cargando avisos…</p>
-      <p id="new-banner" class="new-banner" hidden></p>
-    </div>
-    <div class="head-actions">
-      <button type="button" id="open-runs" class="btn">📋 Registro</button>
-      <button type="button" id="open-settings" class="btn">⚙ Configuración</button>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="./"><img src="favicon.svg" alt="" width="28" height="28"><span>Casa Mendoza</span></a>
+      <div class="topbar-actions">
+        <button type="button" id="open-runs" class="icon-btn ghost" title="Registro de corridas" aria-label="Registro de corridas" data-icon="activity"></button>
+        <button type="button" id="open-settings" class="icon-btn ghost" title="Configuración" aria-label="Configuración" data-icon="gear"></button>
+        <div id="account" class="account"></div>
+      </div>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <button type="button" class="tab" data-tab="all" role="tab">Todos</button>
-    <button type="button" class="tab" data-tab="favorites" role="tab">★ Favoritos <span id="fav-count"></span></button>
-    <div id="account" class="account"></div>
-  </nav>
+  <main class="page">
+    <section class="hero">
+      <h1>Casas y terrenos en el Gran Mendoza</h1>
+      <p id="summary" class="hero-meta">Cargando avisos…</p>
+      <p id="new-banner" class="new-banner" hidden></p>
+    </section>
 
-  <form id="filters">
-    <label>Precio mín. (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
-    <label>Precio máx. (USD)<input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric"></label>
-    <div class="field" id="types-select"></div>
-    <div class="field" id="departments-select"></div>
-    <div class="field" id="sources-select"></div>
-    <label>Ordenar
-      <select name="sort">
-        <option value="score">Mejor puntaje</option>
-        <option value="price">Menor precio</option>
-        <option value="discount">Más barato vs zona</option>
-        <option value="newest">Más nuevos</option>
-      </select>
-    </label>
-    <label class="range">Máx. al centro <output id="maxMinutes-out"></output><input type="range" name="maxMinutes" min="5" max="30" step="1"></label>
-    <div class="checks">
-      <label><input type="checkbox" name="onlyCredito"> Solo apto crédito</label>
-      <label><input type="checkbox" name="onlyPatio"> Solo con patio</label>
-      <label><input type="checkbox" name="hideSuspicious"> Ocultar precios sospechosos</label>
-      <button type="reset" class="btn">Restablecer</button>
+    <form id="filters" class="toolbar">
+      <div class="segmented" role="radiogroup" aria-label="Tipo">
+        <label><input type="radio" name="typeChoice" value=""><span>Todo</span></label>
+        <label><input type="radio" name="typeChoice" value="casa"><span>Casas</span></label>
+        <label><input type="radio" name="typeChoice" value="terreno"><span>Terrenos</span></label>
+      </div>
+      <label class="price-field"><span>Hasta USD</span><input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric" aria-label="Precio máximo en USD"></label>
+      <label class="toggle-chip"><input type="checkbox" name="onlyCredito"><span>Apto crédito</span></label>
+      <label class="toggle-chip"><input type="checkbox" name="onlyPatio"><span>Con patio</span></label>
+      <label class="toggle-chip"><input type="checkbox" name="hideSuspicious"><span>Sin precios dudosos</span></label>
+      <details class="more-filters">
+        <summary class="btn"><span data-icon="sliders"></span>Más filtros<span id="more-count" class="badge" hidden></span></summary>
+        <div class="more-panel">
+          <label class="field">Precio mínimo (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
+          <div class="field" id="departments-select"></div>
+          <div class="field" id="sources-select"></div>
+          <label class="field">Máximo al centro <output id="maxMinutes-out"></output><input type="range" name="maxMinutes" min="5" max="30" step="1"></label>
+          <button type="reset" class="btn">Limpiar filtros</button>
+        </div>
+      </details>
+    </form>
+
+    <div class="results-bar">
+      <nav class="tabs" role="tablist">
+        <button type="button" class="tab" data-tab="all" role="tab">Todos <span id="all-count" class="count"></span></button>
+        <button type="button" class="tab" data-tab="favorites" role="tab"><span data-icon="heart"></span>Favoritos <span id="fav-count" class="count"></span></button>
+      </nav>
+      <label class="sort"><span>Ordenar</span>
+        <select name="sort" form="filters">
+          <option value="score">Mejor puntaje</option>
+          <option value="price">Menor precio</option>
+          <option value="discount">Más barato vs zona</option>
+          <option value="newest">Más nuevos</option>
+        </select>
+      </label>
     </div>
-  </form>
+    <p id="list-note" class="list-note" hidden></p>
 
-  <main id="list"></main>
-  <button id="more" class="btn more" hidden>Ver más</button>
+    <div id="list" class="grid"></div>
+    <button id="more" class="btn more" hidden>Ver más</button>
+
+    <footer>
+      <p>Datos de Inmoclick e Inmoup. Precios publicados, no de cierre. Minutos estimados en línea recta × 1,8.</p>
+      <p><a href="privacidad.html">Privacidad</a> · <a href="condiciones.html">Condiciones</a></p>
+    </footer>
+  </main>
 
   <dialog id="detail" class="sheet"></dialog>
   <dialog id="settings" class="sheet"></dialog>
@@ -64,11 +88,10 @@
     <div class="carousel-bar">
       <span class="carousel-caption"></span>
       <span class="carousel-counter"></span>
-      <button type="button" class="btn icon" data-action="close" aria-label="Cerrar">✕</button>
+      <button type="button" class="icon-btn ghost" data-action="close" aria-label="Cerrar" data-icon="close"></button>
     </div>
   </dialog>
 
-  <footer class="muted">Datos de Inmoclick e Inmoup. Precios publicados, no de cierre. Minutos estimados en línea recta × 1,8.<br><a href="privacidad.html">Privacidad</a> · <a href="condiciones.html">Condiciones</a></footer>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

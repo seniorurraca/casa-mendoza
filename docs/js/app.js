@@ -1,4 +1,4 @@
-import { DEFAULT_FILTERS, applyFilters, favoriteListings, loadFilters, sourcesOf } from "./filters.js";
+import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings, loadFilters, sourcesOf } from "./filters.js";
 import { createMultiSelect } from "./multiselect.js";
 import { renderCard } from "./card.js";
 import { renderDetail, renderThumbs } from "./detail.js";
@@ -11,7 +11,8 @@ import { favoritesApi } from "./favorites-api.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones, areaZone, countMatches } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatDateTime, formatUsd } from "./format.js";
-import { SOURCE_LABEL, TYPE_LABEL, title } from "./listing-view.js";
+import { SOURCE_LABEL, title } from "./listing-view.js";
+import { fillIcons } from "./icons.js";
 import { load, save, storedValue } from "./storage.js";
 import { markNew, newSince, startVisit } from "./visits.js";
 
@@ -29,6 +30,11 @@ const moreButton = document.querySelector("#more");
 const newBanner = document.querySelector("#new-banner");
 const tabs = document.querySelectorAll(".tab");
 const favCount = document.querySelector("#fav-count");
+const allCount = document.querySelector("#all-count");
+const listNote = document.querySelector("#list-note");
+const moreFilters = document.querySelector(".more-filters");
+const moreCount = document.querySelector("#more-count");
+const sortField = document.querySelector(".sort");
 const detailDialog = document.querySelector("#detail");
 const carousel = createCarousel(document.querySelector("#carousel"));
 
@@ -47,13 +53,19 @@ const previousVisit = startVisit({ local: storedValue(VISIT_KEY), session: store
 const byId = id => listings.find(l => l.id === id);
 const fieldValue = el => (el.type === "checkbox" ? el.checked : el.type === "number" || el.type === "range" ? Number(el.value) : el.value);
 
+const typeChoice = types => (types.length === 1 ? types[0] : "");
+
 function syncForm() {
   for (const el of form.elements) {
+    if (el.name === "typeChoice") el.checked = el.value === typeChoice(filters.types);
     if (!(el.name in filters) || Array.isArray(filters[el.name])) continue;
     if (el.type === "checkbox") el.checked = filters[el.name];
     else el.value = filters[el.name];
   }
   form.querySelector("#maxMinutes-out").textContent = `${filters.maxMinutes} min`;
+  const advanced = advancedCount(filters);
+  moreCount.textContent = advanced;
+  moreCount.hidden = !advanced;
 }
 
 function setFilters(next) {
@@ -68,7 +80,6 @@ const optionsFrom = (values, labels = {}) => [...new Set(values)].sort().map(val
 
 function createFilterSelects() {
   const specs = [
-    ["types", "Tipo", optionsFrom(rawListings.map(l => l.type), TYPE_LABEL)],
     ["departments", "Departamento", optionsFrom(rawListings.map(l => l.department))],
     ["sources", "Portales", optionsFrom(rawListings.flatMap(sourcesOf), SOURCE_LABEL)],
   ];
@@ -98,37 +109,39 @@ function recomputeZones() {
   listings = applyZones(rawListings, activeZones(data.dangerZones ?? [], zonePrefs), data.zonePenalty ?? 0);
 }
 
-function searchResults() {
-  const results = applyFilters(listings, filters);
-  const credito = results.filter(l => l.features.credito).length;
+const formatCount = n => n.toLocaleString("es-AR");
+
+function summaryText() {
   const hidden = listings.filter(l => l.zone?.level === "high").length;
-  return {
-    results,
-    text: `${results.length} resultados · ${credito} aptos crédito · ${hidden} ocultos por zona · ${data.stats.scanned} avisos revisados · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${formatDateTime(data.generatedAt)}`,
-    empty: "Nada con estos filtros. Subí el precio máximo o sacá algún filtro.",
-  };
+  return `${formatCount(data.stats.scanned)} avisos revisados · ${hidden} ocultos por zona · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${formatDateTime(data.generatedAt)}`;
 }
 
 function favoriteResults() {
   const { found, missing } = favoriteListings(listings, favorites);
-  const expired = missing ? ` · ${missing} ya no ${missing === 1 ? "está publicado" : "están publicados"}` : "";
-  return { results: found, text: `${found.length} favoritos${expired}`, empty: "Todavía no guardaste favoritos. Tocá la estrella de un aviso." };
+  const note = missing ? `${missing} ${missing === 1 ? "favorito ya no está publicado" : "favoritos ya no están publicados"}.` : "";
+  return { results: found, note, empty: "Todavía no guardaste favoritos. Tocá el corazón de un aviso." };
 }
 
-function renderTabs() {
+function renderTabs(searchCount) {
   tabs.forEach(button => {
     const selected = button.dataset.tab === tab;
     button.classList.toggle("on", selected);
     button.setAttribute("aria-selected", selected);
   });
-  favCount.textContent = favorites.size ? `(${favorites.size})` : "";
+  allCount.textContent = formatCount(searchCount);
+  favCount.textContent = favorites.size || "";
   form.hidden = tab === "favorites";
+  sortField.hidden = tab === "favorites";
 }
 
 function render() {
-  const { results, text, empty } = tab === "favorites" ? favoriteResults() : searchResults();
-  renderTabs();
-  summary.textContent = text;
+  const search = applyFilters(listings, filters);
+  const { results, note, empty } = tab === "favorites" ? favoriteResults()
+    : { results: search, note: "", empty: "Nada con estos filtros. Subí el precio máximo o sacá algún filtro." };
+  renderTabs(search.length);
+  summary.textContent = summaryText();
+  listNote.textContent = note;
+  listNote.hidden = !note;
   list.innerHTML = results.slice(0, visible).map(l => renderCard(l, favorites.has(l.id))).join("") || `<p class="empty">${empty}</p>`;
   moreButton.hidden = results.length <= visible;
   renderNewBanner(results);
@@ -208,9 +221,15 @@ function selectThumb(index) {
   detailDialog.querySelectorAll(".thumb").forEach(t => t.classList.toggle("on", t === thumb));
 }
 
-form.addEventListener("input", event => {
-  if (!event.target.name) return;
-  setFilters({ ...filters, [event.target.name]: fieldValue(event.target) });
+document.addEventListener("input", event => {
+  const { name, form: owner, value } = event.target;
+  if (owner !== form || !name) return;
+  if (name === "typeChoice") return setFilters({ ...filters, types: value ? [value] : [] });
+  setFilters({ ...filters, [name]: fieldValue(event.target) });
+});
+
+document.addEventListener("click", event => {
+  if (moreFilters.open && !moreFilters.contains(event.target)) moreFilters.open = false;
 });
 
 form.addEventListener("reset", event => {
@@ -222,6 +241,7 @@ form.addEventListener("reset", event => {
 list.addEventListener("click", event => {
   const favId = event.target.closest("[data-fav]")?.dataset.fav;
   if (favId) return toggleFavorite(favId);
+  if (event.target.closest("a")) return;
   const action = event.target.closest("[data-action]")?.dataset.action;
   const id = event.target.closest(".card")?.dataset.id;
   if (action === "carousel") openCarousel(byId(id));
@@ -250,6 +270,8 @@ moreButton.addEventListener("click", () => {
   visible += PAGE_SIZE;
   render();
 });
+
+fillIcons(document);
 
 const fetchJson = url => fetch(url, { cache: "no-cache" }).then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status} ${url}`))));
 

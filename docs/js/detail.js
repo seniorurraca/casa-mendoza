@@ -1,6 +1,7 @@
 import { escapeHtml, formatUsd } from "./format.js";
 import { hasCoords } from "./geo.js";
-import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, newTag, scoreTone, sources, title } from "./listing-view.js";
+import { closeButton } from "./icons.js";
+import { avisoLink, breakdownList, chips, discountPill, discountText, factList, favButton, mapsLink, newTag, scorePill, sources, title } from "./listing-view.js";
 
 const IGNORE_RADII_M = [200, 500];
 
@@ -37,10 +38,10 @@ export const renderDetail = (l, isFavorite) => `
 <div class="detail" data-id="${escapeHtml(l.id)}">
   <header class="detail-head">
     <div>
-      <h2>${title(l)} <span class="score inline ${scoreTone(l.score)}">${l.score}</span></h2>
+      <h2>${title(l)}</h2>
       <p class="address">${escapeHtml(l.address)}</p>
     </div>
-    <button type="button" class="btn icon" data-action="close" aria-label="Cerrar">✕</button>
+    ${closeButton}
   </header>
   <div class="gallery">
     <button type="button" class="gallery-main" data-action="gallery-open" data-index="0" aria-label="Ver fotos en grande">
@@ -49,6 +50,8 @@ export const renderDetail = (l, isFavorite) => `
     </button>
     <div class="thumbs"></div>
   </div>
+  <div class="detail-price"><strong>${formatUsd(l.usd)}</strong>${discountPill(l)}${scorePill(l)}</div>
+  ${factList(l)}
   <div class="chips">${chips(l)}</div>
   <dl class="specs">${specs(l)}</dl>
   <section>

@@ -16,14 +16,29 @@ export function createAccount(container, { onLogin, onLogout }) {
   if (!GOOGLE_CLIENT_ID) return { logout() {} };
 
   function renderSignedIn(token) {
-    const { given_name, name, email } = tokenClaims(token);
-    container.innerHTML = `<span class="account-name" title="${escapeHtml(email)}">${escapeHtml(given_name ?? name ?? email)}</span>
-      <button type="button" class="btn small" data-account="logout">Salir</button>`;
+    const { given_name, name, email, picture } = tokenClaims(token);
+    const displayName = given_name ?? name ?? email;
+    const avatar = picture
+      ? `<img src="${escapeHtml(picture)}" alt="" referrerpolicy="no-referrer">`
+      : `<span>${escapeHtml(displayName.charAt(0).toUpperCase())}</span>`;
+    container.innerHTML = `
+      <details class="account-menu">
+        <summary class="avatar" aria-label="Tu cuenta">${avatar}</summary>
+        <div class="menu">
+          <strong>${escapeHtml(name ?? displayName)}</strong>
+          <span class="muted">${escapeHtml(email)}</span>
+          <button type="button" class="btn" data-account="logout">Cerrar sesión</button>
+        </div>
+      </details>`;
   }
 
   function renderSignedOut() {
     container.innerHTML = "";
-    google.accounts.id.renderButton(container, { type: "standard", size: "medium", text: "signin", shape: "pill" });
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const compact = matchMedia("(max-width: 480px)").matches;
+    google.accounts.id.renderButton(container, {
+      type: compact ? "icon" : "standard", theme: dark ? "filled_black" : "outline", size: "large", text: "signin", shape: "pill",
+    });
   }
 
   let refreshTimer = null;
@@ -46,6 +61,11 @@ export function createAccount(container, { onLogin, onLogout }) {
 
   container.addEventListener("click", event => {
     if (event.target.closest("[data-account=logout]")) logout();
+  });
+
+  document.addEventListener("click", event => {
+    const menu = container.querySelector(".account-menu");
+    if (menu?.open && !menu.contains(event.target)) menu.open = false;
   });
 
   loadGis().then(() => {
