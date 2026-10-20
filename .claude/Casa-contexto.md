@@ -15,6 +15,7 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 |---|---|
 | Repo (público) | `seniorurraca/casa-mendoza`, push directo a `main` |
 | Sitio | https://seniorurraca.github.io/casa-mendoza/ (GitHub Pages desde `main` / `docs/`) |
+| Worker favoritos | https://casa-mendoza-favoritos.wow-armeria-api.workers.dev (cuenta Cloudflare personal `orozco.andres96`, D1 `casa-mendoza`). `wrangler` ya logueado en la PC |
 | Datos | `docs/data/listings.json` + `details.json` + `seen.json` + `runs.json`, generados por Actions. **No editar a mano.** |
 
 ## Arquitectura
