@@ -70,8 +70,9 @@ test("market median by department with fallback to overall", () => {
 
 test("history keeps firstSeen and remembers previous price", () => {
   const previous = new Map([["test-1", { id: "test-1", usd: 60000, firstSeen: "2026-10-01", prevUsd: null }]]);
-  const updated = withHistory({ id: "test-1", usd: 55000 }, previous, "2026-10-18T09:30:00.000Z");
-  assert.deepEqual([updated.firstSeen, updated.firstSeenAt, updated.prevUsd], ["2026-10-01", null, 60000]);
-  const fresh = withHistory({ id: "new", usd: 1 }, previous, "2026-10-18T09:30:00.000Z");
+  const seen = { "test-1": "2026-10-01T00:00:00.000Z", new: "2026-10-18T09:30:00.000Z" };
+  const updated = withHistory({ id: "test-1", usd: 55000 }, previous, seen);
+  assert.deepEqual([updated.firstSeen, updated.firstSeenAt, updated.prevUsd], ["2026-10-01", "2026-10-01T00:00:00.000Z", 60000]);
+  const fresh = withHistory({ id: "new", usd: 1 }, previous, seen);
   assert.deepEqual([fresh.firstSeen, fresh.firstSeenAt], ["2026-10-18", "2026-10-18T09:30:00.000Z"]);
 });

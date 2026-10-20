@@ -16,7 +16,10 @@
       <p id="summary" class="muted">Cargando avisos…</p>
       <p id="new-banner" class="new-banner" hidden></p>
     </div>
-    <button type="button" id="open-settings" class="btn">⚙ Configuración</button>
+    <div class="head-actions">
+      <button type="button" id="open-runs" class="btn">📋 Registro</button>
+      <button type="button" id="open-settings" class="btn">⚙ Configuración</button>
+    </div>
   </header>
 
   <form id="filters">
@@ -48,6 +51,7 @@
 
   <dialog id="detail" class="sheet"></dialog>
   <dialog id="settings" class="sheet"></dialog>
+  <dialog id="runs" class="sheet"></dialog>
   <dialog id="carousel" class="carousel">
     <img class="carousel-img" alt="">
     <button type="button" class="carousel-nav prev" data-step="-1" aria-label="Foto anterior">‹</button>

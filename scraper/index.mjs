@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { mkdirSync, readFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { parseArgs } from "node:util";
 import * as inmoclick from "./sources/inmoclick.mjs";
 import * as inmoup from "./sources/inmoup.mjs";
@@ -8,7 +8,9 @@ import { enrich } from "./lib/enrich.mjs";
 import { AREA_RULES, OFFER_RULES, partition } from "./lib/filters.mjs";
 import { buildMarket, zoneMedian } from "./lib/market.mjs";
 import { scoreListing } from "./lib/score.mjs";
-import { readPrevious, upsert, withHistory } from "./lib/history.mjs";
+import { readPrevious, registerSeen, upsert, withHistory } from "./lib/history.mjs";
+import { dataFile, readJson, writeJson } from "./lib/files.mjs";
+import { appendRun, runUrl } from "./lib/runs.mjs";
 import { dedupe } from "./lib/dedupe.mjs";
 import { sourcesFor } from "./lib/sources.mjs";
 
@@ -18,19 +20,23 @@ const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "photosApi", "pho
   "lat", "lng", "department", "address", "locationText", "publishedAt", "agency", "features", "minutes", "ppm", "alsoOn"];
 
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k]]));
-const writeJson = (path, value) => writeFileSync(path, JSON.stringify(value));
 
 const { values: args } = parseArgs({ options: { "max-pages": { type: "string" }, mode: { type: "string", default: "full" } } });
 const mode = args.mode;
 const config = JSON.parse(readFileSync("config.json", "utf8"));
-const detailsPath = join(dirname(config.output), "details.json");
+const detailsPath = dataFile(config, "details.json");
+const seenPath = dataFile(config, "seen.json");
+const runsPath = dataFile(config, "runs.json");
 const startedAt = new Date().toISOString();
 
 const usdRate = await getUsdRate(config.usdRate);
 const scraped = [];
+const scannedBySource = {};
 for (const [name, options] of sourcesFor(config.sources, mode)) {
   const maxPages = Number(args["max-pages"] ?? options.maxPages);
-  scraped.push(...(await SOURCES[name].fetchAll({ ...options, maxPages, usdRate })).map(l => enrich(l, config)));
+  const found = await SOURCES[name].fetchAll({ ...options, maxPages, usdRate });
+  scannedBySource[name] = found.length;
+  scraped.push(...found.map(l => enrich(l, config)));
 }
 
 const previous = readPrevious(config.output, detailsPath);
@@ -41,10 +47,12 @@ const market = mode === "full" ? buildMarket(unique, config.segment) : previous.
 const offer = partition(unique, config, OFFER_RULES);
 
 const now = new Date().toISOString();
+const seen = registerSeen(readJson(seenPath, {}), previous.data.listings, scraped, now);
 const listings = offer.kept
   .map(l => ({ ...pick(l, PUBLIC_FIELDS), ...scoreListing(l, zoneMedian(market, l, config.segment.minSamples), config.scoring, config.maxMinutes) }))
-  .map(l => withHistory(l, previous.byId, now))
+  .map(l => withHistory(l, previous.byId, seen))
   .sort((a, b) => b.score - a.score);
+const newCount = listings.filter(l => l.firstSeenAt === now).length;
 
 const fullStats = { scanned: scraped.length, duplicates: pool.length - unique.length, kept: listings.length, discarded: { ...area.discarded, ...offer.discarded } };
 const result = {
@@ -52,7 +60,7 @@ const result = {
   startedAt,
   lastFullAt: mode === "full" ? now : previous.data.lastFullAt ?? previous.data.generatedAt,
   usdRate,
-  stats: mode === "full" ? fullStats : { ...previous.data.stats, kept: listings.length, quickNew: listings.filter(l => !previous.byId.has(l.id)).length },
+  stats: mode === "full" ? fullStats : { ...previous.data.stats, kept: listings.length, quickNew: newCount },
   dangerZones: config.dangerZones,
   zonePenalty: config.scoring.penalties.zonaMedia,
   market,
@@ -62,4 +70,8 @@ const result = {
 mkdirSync(dirname(config.output), { recursive: true });
 writeJson(config.output, result);
 writeJson(detailsPath, Object.fromEntries(offer.kept.map(l => [l.id, { description: l.description, photos: l.photos ?? [] }])));
+writeJson(seenPath, seen);
+writeJson(runsPath, appendRun(readJson(runsPath, []), {
+  mode, ok: true, startedAt, finishedAt: now, scanned: scannedBySource, kept: listings.length, new: newCount, error: null, url: runUrl(process.env),
+}));
 console.log(mode, JSON.stringify(result.stats, null, 2));

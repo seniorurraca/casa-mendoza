@@ -15,7 +15,7 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 |---|---|
 | Repo (público) | `seniorurraca/casa-mendoza`, push directo a `main` |
 | Sitio | https://seniorurraca.github.io/casa-mendoza/ (GitHub Pages desde `main` / `docs/`) |
-| Datos | `docs/data/listings.json` + `docs/data/details.json`, generados por Actions. **No editar a mano.** |
+| Datos | `docs/data/listings.json` + `details.json` + `seen.json` + `runs.json`, generados por Actions. **No editar a mano.** |
 
 ## Arquitectura
 
@@ -41,11 +41,13 @@ Sin backend ni API. GitHub Actions (cron) → `scraper/` (Node) → JSON commite
 - GitHub retrasa los cron ~20–30 min. Es normal.
 - Corre `npm test` antes de scrapear, y hace `git pull --rebase` antes de pushear los datos.
 - Si el scraper falla, aborta **sin pisar** los JSON: el sitio sigue con los datos anteriores.
+- Todo el output (tests + scraper) va a `run.log` (`tee`, `shell: bash` → pipefail). Si falla, `scraper/log-failure.mjs` agrega la corrida fallida a `runs.json` con las últimas 15 líneas del log, y el paso de commit corre igual (`success() || failure()`). Timeout/cancelación no se registran: la UI los detecta como "sin corridas" (> 8 h).
 
 ## Mapa del código
 
 ```
 scraper/index.mjs              orquestador: --mode full|quick, --max-pages N
+scraper/log-failure.mjs        registra una corrida fallida en runs.json (lo llama el workflow)
 scraper/sources/inmoclick.mjs  fuente Inmoclick      (detalles en Casa-fuentes.md)
 scraper/sources/inmoup.mjs     fuente Inmoup
 scraper/lib/
@@ -59,7 +61,9 @@ scraper/lib/
   dedupe.mjs    mismo inmueble en varios portales → uno + alsoOn
   market.mjs    medianas USD/m² por tipo × departamento
   score.mjs     puntaje 0–100, breakdown, suspicious
-  history.mjs   readPrevious, withHistory (firstSeen, firstSeenAt, prevUsd), upsert
+  history.mjs   readPrevious, registerSeen (registro de ids vistos), withHistory (firstSeen, firstSeenAt, prevUsd), upsert
+  files.mjs     readJson, writeJson, dataFile (ruta dentro de docs/data)
+  runs.mjs      appendRun (máx. 60, la más nueva primero), logTail, runUrl (link a Actions)
 docs/js/
   app.js            orquestación UI: estado, eventos, diálogos
   filters.js        DEFAULT_FILTERS, applyFilters, loadFilters (descarta claves viejas)
@@ -68,6 +72,8 @@ docs/js/
   card.js / detail.js / listing-view.js   tarjeta, detalle y helpers compartidos
   carousel.js       carrusel pantalla completa (flechas, teclado, swipe)
   settings.js       diálogo ⚙ Configuración (barrios)
+  runs.js           healthOf(runs): ok | fail | stale (> 8 h sin corrida OK) | unknown
+  runs-dialog.js    diálogo 📋 Registro + punto rojo en el botón si fail/stale
   multiselect.js    combo multi-selección (Tipo, Departamento, Portales)
   loaders.js        fotos (API Inmoclick o details.json) + descripción, con caché
   maps.js, format.js, icons.js, storage.js, text.js
@@ -82,7 +88,8 @@ docs/js/
 5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10%. Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
 6. `buildMarket()` (solo full): mediana USD/m² por tipo × departamento. Segmento casas USD 15–90k, terrenos 3–90k; fallback a la mediana general si n < 5. **Antes** de `OFFER_RULES` para no sesgar terrenos.
 7. `OFFER_RULES` (> USD 150k; terreno > 25k o < 200 m²).
-8. `scoreListing()` + `withHistory()` → `listings.json` + `details.json`.
+8. `registerSeen()` + `scoreListing()` + `withHistory()` → `listings.json` + `details.json` + `seen.json`; se agrega la corrida a `runs.json`.
+   - `seen.json` = `{ id: firstSeenAt }` de **todo** lo scrapeado (también descartados y perdedores del dedupe), nunca se borra. `firstSeenAt` sale de ahí: un aviso que falta en una corrida y vuelve, que cambia de ganador en el dedupe o que baja de precio y entra **no** es nuevo. Antes de esto (hasta 2026-10-20) eso generaba falsos NUEVO.
 
 ### Puntaje (`score.mjs`, pesos en `config.scoring`)
 
@@ -105,6 +112,8 @@ docs/js/
   - Raíz: `generatedAt`, `startedAt`, `lastFullAt`, `usdRate`, `stats`, `dangerZones`, `zonePenalty`, `market`, `listings[]`.
   - Cada listing: `id` (`{source}-{usr}-{prp}`), `source`, `type` (casa|terreno), `url`, `photo`, `photosApi`, `photoCount`, `usd`, `priceRaw`, `supT`, `supC`, `dorm`, `banos`, `lat`, `lng`, `department`, `address`, `locationText` (normalizado, para barrios), `publishedAt`, `agency`, `features{credito,patio,cochera,posesion,reciclar}`, `minutes`, `ppm`, `alsoOn[]`, `score`, `discount`, `zonePpm`, `breakdown[]`, `suspicious`, `firstSeen` (fecha), `firstSeenAt` (ISO; null en avisos anteriores al 2026-10-19), `prevUsd`.
 - `details.json`: `{ [id]: { description, photos[] } }`.
+- `seen.json`: `{ [id]: firstSeenAt }`. Solo lo usa el scraper.
+- `runs.json`: últimas 60 corridas, la más nueva primero: `mode`, `ok`, `startedAt` (null si falló), `finishedAt`, `scanned{fuente: n}`, `kept`, `new`, `error` (tail del log), `url` (run de Actions).
 - Peso: ~4 MB + ~6,5 MB sin comprimir (~650 KB gzip la lista). Si molesta en móvil → partir en archivos más chicos.
 
 ## Frontend
@@ -113,7 +122,8 @@ docs/js/
 - **⚙ Configuración — barrios peligrosos:** la base viene de `config.dangerZones` y el usuario la edita (activar/desactivar, agregar). "Ocultar" (high) saca el aviso; "Advertir" (medium) muestra un chip y resta 15. Matchea contra `locationText` (dirección + slug). Ojo con nombres que también son calles.
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
 - **Carrusel** a pantalla completa desde la foto de la tarjeta. Badge "1/N" solo si hay más de 1 foto; Inmoclick no informa el total → solo ícono.
-- **Visitas:** banner "N avisos nuevos desde tu última visita (dd/mm/aaaa hh:mm)" + tag NUEVO arriba a la izquierda de la foto. Sin visita previa → nuevo = últimos 3 días.
+- **Visitas:** banner "N avisos nuevos desde tu última visita (dd/mm/aaaa hh:mm)" + tag NUEVO abajo a la izquierda de la foto (arriba a la derecha está el puntaje). Sin visita previa → nuevo = últimos 3 días.
+- **📋 Registro:** lista de corridas (`runs.json`), estado general y link a cada run de Actions. Si `runs.json` no existe → lista vacía.
 - **Storage:**
   - `localStorage`: `casa-mendoza:filters`, `:favorites`, `:zones`, `:last-visit`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
@@ -176,6 +186,7 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 - Zonas peligrosas filtradas en el frontend (no en el scraper) para que el usuario las edite.
 - Apto crédito: campo estructurado del portal > regex de texto.
 - Corridas quick cada 4 h (pedido del usuario): para enterarse antes de lo nuevo. No bajan el riesgo de bloqueo: eso lo hacen el delay y pedir menos páginas.
+- Sin base de datos: el registro de ids vistos (`seen.json`) y el log de corridas (`runs.json`) son JSON commiteados por Actions. Cloudflare (Worker + KV/D1) queda para lo que necesite escribir desde el navegador (favoritos sincronizados).
 - Nombre del sitio "Próximo hogar · Andy & Natalí" + favicon casita con corazón (`docs/favicon.svg`), elegidos por el usuario.
 
 ## Ideas pendientes

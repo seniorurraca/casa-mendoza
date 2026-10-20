@@ -4,6 +4,7 @@ import { renderCard } from "./card.js";
 import { renderDetail, renderThumbs } from "./detail.js";
 import { createCarousel } from "./carousel.js";
 import { createSettings } from "./settings.js";
+import { createRunsDialog } from "./runs-dialog.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatDateTime, formatUsd } from "./format.js";
@@ -163,7 +164,12 @@ moreButton.addEventListener("click", () => {
   render();
 });
 
-data = await (await fetch("data/listings.json", { cache: "no-cache" })).json();
+const fetchJson = url => fetch(url, { cache: "no-cache" }).then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status} ${url}`))));
+
+const runs = await fetchJson("data/runs.json").catch(() => []);
+createRunsDialog(document.querySelector("#runs"), document.querySelector("#open-runs"), runs);
+
+data = await fetchJson("data/listings.json");
 rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({ ...l, baseScore: l.score, baseBreakdown: l.breakdown }));
 recomputeZones();
 

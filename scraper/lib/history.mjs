@@ -1,6 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-
-const readJson = (path, fallback) => (existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : fallback);
+import { readJson } from "./files.mjs";
 
 const detailOf = entry => (typeof entry === "string" ? { description: entry, photos: [] } : entry ?? { description: "", photos: [] });
 
@@ -14,11 +12,20 @@ export function readPrevious(outputPath, detailsPath) {
   };
 }
 
-export function withHistory(listing, previousById, now) {
+const legacySeenAt = l => l.firstSeenAt ?? `${l.firstSeen}T00:00:00.000Z`;
+
+export function registerSeen(seen, previousListings, scraped, now) {
+  const next = { ...seen };
+  for (const l of previousListings) next[l.id] ??= legacySeenAt(l);
+  for (const l of scraped) next[l.id] ??= now;
+  return next;
+}
+
+export function withHistory(listing, previousById, seen) {
   const before = previousById.get(listing.id);
-  if (!before) return { ...listing, firstSeen: now.slice(0, 10), firstSeenAt: now, prevUsd: null };
-  const prevUsd = before.usd !== listing.usd ? before.usd : before.prevUsd;
-  return { ...listing, firstSeen: before.firstSeen, firstSeenAt: before.firstSeenAt ?? null, prevUsd };
+  const firstSeenAt = seen[listing.id];
+  const prevUsd = !before ? null : before.usd !== listing.usd ? before.usd : before.prevUsd;
+  return { ...listing, firstSeen: firstSeenAt.slice(0, 10), firstSeenAt, prevUsd };
 }
 
 export const upsert = (existing, incoming) => {
