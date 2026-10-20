@@ -22,6 +22,11 @@
     </div>
   </header>
 
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab" data-tab="all" role="tab">Todos</button>
+    <button type="button" class="tab" data-tab="favorites" role="tab">★ Favoritos <span id="fav-count"></span></button>
+  </nav>
+
   <form id="filters">
     <label>Precio mín. (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
     <label>Precio máx. (USD)<input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric"></label>
@@ -41,7 +46,6 @@
       <label><input type="checkbox" name="onlyCredito"> Solo apto crédito</label>
       <label><input type="checkbox" name="onlyPatio"> Solo con patio</label>
       <label><input type="checkbox" name="hideSuspicious"> Ocultar precios sospechosos</label>
-      <label><input type="checkbox" name="onlyFavorites"> Solo favoritos</label>
       <button type="reset" class="btn">Restablecer</button>
     </div>
   </form>

@@ -1,4 +1,4 @@
-import { DEFAULT_FILTERS, applyFilters, loadFilters, sourcesOf } from "./filters.js";
+import { DEFAULT_FILTERS, applyFilters, favoriteListings, loadFilters, sourcesOf } from "./filters.js";
 import { createMultiSelect } from "./multiselect.js";
 import { renderCard } from "./card.js";
 import { renderDetail, renderThumbs } from "./detail.js";
@@ -24,6 +24,8 @@ const list = document.querySelector("#list");
 const summary = document.querySelector("#summary");
 const moreButton = document.querySelector("#more");
 const newBanner = document.querySelector("#new-banner");
+const tabs = document.querySelectorAll(".tab");
+const favCount = document.querySelector("#fav-count");
 const detailDialog = document.querySelector("#detail");
 const carousel = createCarousel(document.querySelector("#carousel"));
 
@@ -35,6 +37,7 @@ let multiSelects = [];
 let favorites = new Set(load(FAVORITES_KEY, []));
 let zonePrefs = { ...DEFAULT_ZONE_PREFS, ...load(ZONES_KEY, {}) };
 let visible = PAGE_SIZE;
+let tab = "all";
 const previousVisit = startVisit({ local: storedValue(VISIT_KEY), session: storedValue(VISIT_SESSION_KEY, "session") });
 
 const byId = id => listings.find(l => l.id === id);
@@ -76,13 +79,38 @@ function recomputeZones() {
   listings = applyZones(rawListings, activeZones(data.dangerZones ?? [], zonePrefs), data.zonePenalty ?? 0);
 }
 
-function render() {
-  const results = applyFilters(listings, filters, favorites);
+function searchResults() {
+  const results = applyFilters(listings, filters);
   const credito = results.filter(l => l.features.credito).length;
   const hidden = listings.filter(l => l.zone?.level === "high").length;
-  summary.textContent = `${results.length} resultados · ${credito} aptos crédito · ${hidden} ocultos por zona · ${data.stats.scanned} avisos revisados · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${formatDateTime(data.generatedAt)}`;
-  list.innerHTML = results.slice(0, visible).map(l => renderCard(l, favorites.has(l.id))).join("") ||
-    `<p class="empty">Nada con estos filtros. Subí el precio máximo o sacá algún filtro.</p>`;
+  return {
+    results,
+    text: `${results.length} resultados · ${credito} aptos crédito · ${hidden} ocultos por zona · ${data.stats.scanned} avisos revisados · dólar ${formatUsd(data.usdRate).replace("USD ", "$")} · actualizado ${formatDateTime(data.generatedAt)}`,
+    empty: "Nada con estos filtros. Subí el precio máximo o sacá algún filtro.",
+  };
+}
+
+function favoriteResults() {
+  const { found, missing } = favoriteListings(listings, favorites);
+  const expired = missing ? ` · ${missing} ya no ${missing === 1 ? "está publicado" : "están publicados"}` : "";
+  return { results: found, text: `${found.length} favoritos${expired}`, empty: "Todavía no guardaste favoritos. Tocá la estrella de un aviso." };
+}
+
+function renderTabs() {
+  tabs.forEach(button => {
+    const selected = button.dataset.tab === tab;
+    button.classList.toggle("on", selected);
+    button.setAttribute("aria-selected", selected);
+  });
+  favCount.textContent = favorites.size ? `(${favorites.size})` : "";
+  form.hidden = tab === "favorites";
+}
+
+function render() {
+  const { results, text, empty } = tab === "favorites" ? favoriteResults() : searchResults();
+  renderTabs();
+  summary.textContent = text;
+  list.innerHTML = results.slice(0, visible).map(l => renderCard(l, favorites.has(l.id))).join("") || `<p class="empty">${empty}</p>`;
   moreButton.hidden = results.length <= visible;
   renderNewBanner(results);
 }
@@ -158,6 +186,12 @@ detailDialog.addEventListener("click", event => {
   if (target?.dataset.action === "gallery-open") openCarousel(byId(id), Number(target.dataset.index));
   if (target?.dataset.action === "close" || event.target === detailDialog) detailDialog.close();
 });
+
+tabs.forEach(button => button.addEventListener("click", () => {
+  tab = button.dataset.tab;
+  visible = PAGE_SIZE;
+  render();
+}));
 
 moreButton.addEventListener("click", () => {
   visible += PAGE_SIZE;

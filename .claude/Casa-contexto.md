@@ -66,7 +66,7 @@ scraper/lib/
   runs.mjs      appendRun (máx. 60, la más nueva primero), logTail, runUrl (link a Actions)
 docs/js/
   app.js            orquestación UI: estado, eventos, diálogos
-  filters.js        DEFAULT_FILTERS, applyFilters, loadFilters (descarta claves viejas)
+  filters.js        DEFAULT_FILTERS, applyFilters, favoriteListings, loadFilters (descarta claves viejas)
   zones.js          barrios peligrosos: defaults + prefs del usuario → zone + penalidad
   visits.js         última visita, markNew, seenAt
   card.js / detail.js / listing-view.js   tarjeta, detalle y helpers compartidos
@@ -118,7 +118,8 @@ docs/js/
 
 ## Frontend
 
-- **Filtros:** precio mín/máx; Tipo / Departamento / Portales (multi-selección, `[]` = todos); minutos; apto crédito; patio; ocultar sospechosos; favoritos. Orden: puntaje, precio, descuento vs zona, más nuevos.
+- **Tabs Todos / ★ Favoritos:** Favoritos ignora todos los filtros (y las zonas "Ocultar"), ordena del último guardado al primero (`favoriteListings`) y cuenta los que ya no están publicados. En esa tab se oculta el formulario.
+- **Filtros:** precio mín/máx; Tipo / Departamento / Portales (multi-selección, `[]` = todos); minutos; apto crédito; patio; ocultar sospechosos. Orden: puntaje, precio, descuento vs zona, más nuevos.
 - **⚙ Configuración — barrios peligrosos:** la base viene de `config.dangerZones` y el usuario la edita (activar/desactivar, agregar). "Ocultar" (high) saca el aviso; "Advertir" (medium) muestra un chip y resta 15. Matchea contra `locationText` (dirección + slug). Ojo con nombres que también son calles.
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
 - **Carrusel** a pantalla completa desde la foto de la tarjeta. Badge "1/N" solo si hay más de 1 foto; Inmoclick no informa el total → solo ícono.

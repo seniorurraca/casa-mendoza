@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mapsUrl } from "../docs/js/maps.js";
-import { DEFAULT_FILTERS, applyFilters } from "../docs/js/filters.js";
+import { DEFAULT_FILTERS, applyFilters, favoriteListings } from "../docs/js/filters.js";
 
 const listing = (overrides = {}) => ({
   id: "a", type: "casa", usd: 50000, department: "Godoy Cruz", address: "Calle 1", minutes: 12,
@@ -31,7 +31,13 @@ test("price range and toggles are configurable", () => {
   assert.deepEqual(result.map(l => l.id), ["c"]);
 });
 
-test("favorites filter shows only saved listings", () => {
-  const result = applyFilters([listing(), listing({ id: "fav" })], { ...DEFAULT_FILTERS, onlyFavorites: true }, new Set(["fav"]));
-  assert.deepEqual(result.map(l => l.id), ["fav"]);
+test("favorites ignore filters and show the last saved first", () => {
+  const items = [listing({ id: "cara", usd: 140000 }), listing({ id: "lejos", zone: { level: "high" } }), listing({ id: "otra" })];
+  const { found, missing } = favoriteListings(items, new Set(["cara", "vencido", "lejos"]));
+  assert.deepEqual(found.map(l => l.id), ["lejos", "cara"]);
+  assert.equal(missing, 1);
+});
+
+test("old onlyFavorites filter is dropped when loading", () => {
+  assert.equal("onlyFavorites" in DEFAULT_FILTERS, false);
 });

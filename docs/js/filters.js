@@ -10,7 +10,6 @@ export const DEFAULT_FILTERS = {
   onlyCredito: false,
   onlyPatio: false,
   hideSuspicious: false,
-  onlyFavorites: false,
   sort: "score",
 };
 
@@ -25,7 +24,7 @@ const allows = (selected, ...values) => !selected.length || values.some(v => sel
 
 export const sourcesOf = l => [l.source, ...(l.alsoOn ?? []).map(o => o.source)];
 
-const matches = (l, f, favorites) =>
+const matches = (l, f) =>
   l.zone?.level !== "high" &&
   l.usd >= f.minUsd &&
   l.usd <= f.maxUsd &&
@@ -35,11 +34,16 @@ const matches = (l, f, favorites) =>
   (l.minutes === null || l.minutes <= f.maxMinutes) &&
   (!f.onlyCredito || l.features.credito) &&
   (!f.onlyPatio || l.features.patio) &&
-  (!f.hideSuspicious || !l.suspicious) &&
-  (!f.onlyFavorites || favorites.has(l.id));
+  (!f.hideSuspicious || !l.suspicious);
 
-export const applyFilters = (listings, filters, favorites = new Set()) =>
-  listings.filter(l => matches(l, filters, favorites)).sort(SORTERS[filters.sort]);
+export const applyFilters = (listings, filters) =>
+  listings.filter(l => matches(l, filters)).sort(SORTERS[filters.sort]);
+
+export function favoriteListings(listings, favorites) {
+  const byId = new Map(listings.map(l => [l.id, l]));
+  const found = [...favorites].reverse().map(id => byId.get(id)).filter(Boolean);
+  return { found, missing: favorites.size - found.length };
+}
 
 export function loadFilters(saved) {
   const known = Object.fromEntries(Object.entries(saved ?? {}).filter(([key]) => key in DEFAULT_FILTERS));
