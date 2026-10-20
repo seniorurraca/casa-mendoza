@@ -1,6 +1,7 @@
 const CERTS_URL = "https://www.googleapis.com/oauth2/v3/certs";
 const ISSUERS = ["accounts.google.com", "https://accounts.google.com"];
 const KEYS_TTL_MS = 3_600_000;
+const ANY_EMAIL = "*";
 
 const base64UrlBytes = text => Uint8Array.from(atob(text.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
 function decodePart(part) {
@@ -35,6 +36,6 @@ export async function verifyGoogleToken(token, { clientId, allowedEmails, keys, 
   const jwk = keys.find(k => k.kid === header.kid);
   if (header.alg !== "RS256" || !jwk || !(await hasValidSignature(token, jwk).catch(() => false))) return null;
   const valid = ISSUERS.includes(claims.iss) && claims.aud === clientId && claims.exp * 1000 > now &&
-    claims.email_verified === true && allowedEmails.includes(claims.email);
+    claims.email_verified === true && (allowedEmails.includes(ANY_EMAIL) || allowedEmails.includes(claims.email));
   return valid ? claims.email : null;
 }

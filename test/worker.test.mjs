@@ -36,6 +36,12 @@ test("tokens that are expired, for another app, another email or tampered are re
   assert.equal(await verify(undefined), null);
 });
 
+test("the * wildcard accepts any google-verified email", async () => {
+  const open = { clientId: CLIENT_ID, allowedEmails: ["*"], keys, now: NOW };
+  assert.equal(await verifyGoogleToken(await signToken({ email: "amigo@example.com" }), open), "amigo@example.com");
+  assert.equal(await verifyGoogleToken(await signToken({ email: "amigo@example.com", email_verified: false }), open), null);
+});
+
 function fakeDb() {
   const rows = [];
   const statement = (sql, args = []) => ({

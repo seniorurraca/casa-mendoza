@@ -86,7 +86,7 @@ docs/js/
   maps.js, format.js, icons.js, storage.js, text.js
 worker/src/
   index.mjs         rutas + CORS (ALLOWED_ORIGINS)
-  google-token.mjs  verifica el ID token: firma RS256 con las claves de Google, iss, aud = GOOGLE_CLIENT_ID, exp, email_verified, email ∈ ALLOWED_EMAILS
+  google-token.mjs  verifica el ID token: firma RS256 con las claves de Google, iss, aud = GOOGLE_CLIENT_ID, exp, email_verified, email ∈ ALLOWED_EMAILS ("*" = cualquiera)
   favorites.mjs     SQL D1 (tabla en worker/schema.sql)
 ```
 
@@ -139,8 +139,8 @@ worker/src/
 - **📋 Registro:** lista de corridas (`runs.json`), estado general y link a cada run de Actions. Si `runs.json` no existe → lista vacía.
 - **Favoritos por cuenta:** "Iniciar sesión" (Google) a la derecha de las tabs. Al entrar, los favoritos del navegador se suman a la cuenta (`POST /favorites/merge`) y se borran del `localStorage`. Cada mail tiene su lista. Al salir vuelve a los favoritos locales (vacíos). Cambios optimistas: si el Worker falla, se revierte y avisa.
   - API: `POST /favorites/merge {ids}` → lista; `PUT|DELETE /favorites/:id`. Header `Authorization: Bearer <ID token de Google>`.
-  - `ALLOWED_EMAILS` es **secret** del Worker (no va al repo público). `GOOGLE_CLIENT_ID` y la URL del Worker son públicos.
-  - Pantalla de consentimiento de Google en modo Testing con los dos mails como test users: sin verificación de Google ni dominio propio.
+  - **Registro abierto** (decisión del usuario 2026-10-20): `ALLOWED_EMAILS = "*"` en `wrangler.toml` → cualquier cuenta Google con mail verificado tiene su lista. Para cerrarlo: lista de mails separada por comas (mejor como `wrangler secret`, no en el repo público).
+  - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://seniorurraca.github.io`, `http://localhost:8080`.
 - **Storage:**
   - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
