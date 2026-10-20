@@ -76,6 +76,9 @@ summary { cursor: pointer; }
 .more { display: block; margin: 16px auto; }
 .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 32px 0; }
 footer { margin-top: 24px; text-align: center; }
+footer a, .legal a { color: var(--accent); }
+.legal { max-width: 720px; margin: 0 auto; }
+.legal h2 { margin: 24px 0 6px; font-size: 18px; font-weight: 600; }
 
 @media (max-width: 480px) {
   #list { grid-template-columns: 1fr; }
