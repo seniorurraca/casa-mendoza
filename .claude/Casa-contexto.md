@@ -1,4 +1,4 @@
-# Contexto del proyecto Casa Mendoza ("Próximo hogar · Andy & Natalí")
+# Contexto del proyecto Casa Mendoza
 
 App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en el Gran Mendoza, Argentina**. Todo en español rioplatense.
 
@@ -204,7 +204,7 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 - Apto crédito: campo estructurado del portal > regex de texto.
 - Corridas quick cada 4 h (pedido del usuario): para enterarse antes de lo nuevo. No bajan el riesgo de bloqueo: eso lo hacen el delay y pedir menos páginas.
 - Sin base de datos: el registro de ids vistos (`seen.json`) y el log de corridas (`runs.json`) son JSON commiteados por Actions. Cloudflare (Worker + KV/D1) queda para lo que necesite escribir desde el navegador (favoritos sincronizados).
-- Nombre del sitio "Próximo hogar · Andy & Natalí" + favicon casita con corazón (`docs/favicon.svg`), elegidos por el usuario.
+- Nombre del sitio "Casa Mendoza" (antes "Próximo hogar · Andy & Natalí"; se cambió el 2026-10-20 para poder compartirlo) + favicon casita con corazón (`docs/favicon.svg`).
 
 ## Ideas pendientes
 

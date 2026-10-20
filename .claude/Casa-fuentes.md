@@ -69,7 +69,7 @@ Las inmobiliarias publican lo mismo en ambos portales (~1.580 duplicados por cor
 ## Canales legítimos para portales bloqueados (propuestos, no implementados)
 
 - **Alertas por email**: el usuario guarda búsquedas en Zonaprop/Argenprop → reenvío a un Cloudflare Email Worker → parsea y suma avisos.
-- **Bookmarklet "Guardar en Próximo hogar"**: el usuario lo toca mientras mira un aviso; lee los datos de la página que tiene abierta.
+- **Bookmarklet "Guardar en Casa Mendoza"**: el usuario lo toca mientras mira un aviso; lee los datos de la página que tiene abierta.
 - **MercadoLibre**: API oficial con app de ML Developers.
 
 ## Cómo agregar o arreglar una fuente
