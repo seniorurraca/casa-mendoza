@@ -204,6 +204,7 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 - Apto crédito: campo estructurado del portal > regex de texto.
 - Corridas quick cada 4 h (pedido del usuario): para enterarse antes de lo nuevo. No bajan el riesgo de bloqueo: eso lo hacen el delay y pedir menos páginas.
 - Sin base de datos: el registro de ids vistos (`seen.json`) y el log de corridas (`runs.json`) son JSON commiteados por Actions. Cloudflare (Worker + KV/D1) queda para lo que necesite escribir desde el navegador (favoritos sincronizados).
+- El Worker usa el subdominio `wow-armeria-api.workers.dev` porque es único por cuenta de Cloudflare y la cuenta ya lo tenía de otro proyecto (una armería). El usuario decidió dejarlo (2026-10-20): no cambiarlo, porque rompería los Workers de ese otro proyecto.
 - Nombre del sitio "Casa Mendoza" (antes "Próximo hogar · Andy & Natalí"; se cambió el 2026-10-20 para poder compartirlo) + favicon casita con corazón (`docs/favicon.svg`).
 
 ## Ideas pendientes
