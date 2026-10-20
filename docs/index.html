@@ -40,16 +40,16 @@
         <label><input type="radio" name="typeChoice" value="terreno"><span>Terrenos</span></label>
       </div>
       <label class="price-field"><span>Hasta USD</span><input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric" aria-label="Precio máximo en USD"></label>
+      <div class="field toolbar-select" id="departments-select"></div>
       <label class="toggle-chip"><input type="checkbox" name="onlyCredito"><span>Apto crédito</span></label>
-      <label class="toggle-chip"><input type="checkbox" name="onlyPatio"><span>Con patio</span></label>
-      <label class="toggle-chip"><input type="checkbox" name="hideSuspicious"><span>Sin precios dudosos</span></label>
       <details class="more-filters">
         <summary class="btn"><span data-icon="sliders"></span>Más filtros<span id="more-count" class="badge" hidden></span></summary>
         <div class="more-panel">
           <label class="field">Precio mínimo (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
-          <div class="field" id="departments-select"></div>
           <div class="field" id="sources-select"></div>
           <label class="field">Máximo al centro <output id="maxMinutes-out"></output><input type="range" name="maxMinutes" min="5" max="30" step="1"></label>
+          <label class="check-row"><input type="checkbox" name="onlyPatio"><span>Solo con patio</span></label>
+          <label class="check-row"><input type="checkbox" name="hideSuspicious"><span>Ocultar precios sospechosos<small>Más de 55% por debajo de la zona. Suelen ser errores del aviso, anticipos o cuotas.</small></span></label>
           <button type="reset" class="btn">Limpiar filtros</button>
         </div>
       </details>

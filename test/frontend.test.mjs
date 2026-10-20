@@ -55,5 +55,5 @@ test("google token claims are read and expiry is checked with a margin", () => {
 
 test("more-filters badge counts only the filters inside the panel", () => {
   assert.equal(advancedCount(DEFAULT_FILTERS), 0);
-  assert.equal(advancedCount({ ...DEFAULT_FILTERS, minUsd: 20000, departments: ["Maipu"], maxMinutes: 20, onlyCredito: true }), 3);
+  assert.equal(advancedCount({ ...DEFAULT_FILTERS, minUsd: 20000, departments: ["Maipu"], maxMinutes: 20, onlyCredito: true, onlyPatio: true, hideSuspicious: true }), 4);
 });

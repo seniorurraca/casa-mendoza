@@ -50,7 +50,7 @@ export function loadFilters(saved) {
   return { ...DEFAULT_FILTERS, ...known };
 }
 
-const ADVANCED_FILTERS = ["minUsd", "departments", "sources", "maxMinutes"];
+const ADVANCED_FILTERS = ["minUsd", "sources", "maxMinutes", "onlyPatio", "hideSuspicious"];
 
 const isActive = (value, fallback) => (Array.isArray(value) ? value.length > 0 : value !== fallback);
 

@@ -6,20 +6,22 @@ import { DEFAULT_FILTERS, applyFilters, loadFilters } from "../docs/js/filters.j
 const all = ["Capital", "Godoy Cruz", "Maipu"];
 const options = all.map(value => ({ value, label: value }));
 
-test("empty selection means everything is checked", () => {
-  assert.equal(isChecked([], "Maipu"), true);
+test("empty selection means all, with only the 'all' box checked", () => {
+  assert.equal(isChecked([], "Maipu"), false);
   assert.equal(summaryText([], options), "Todos");
+  assert.equal(summaryText([], options, "Todos los departamentos"), "Todos los departamentos");
 });
 
-test("unchecking from all keeps the rest, rechecking returns to all", () => {
-  const without = toggleOption([], "Maipu", all);
-  assert.deepEqual(without, ["Capital", "Godoy Cruz"]);
-  assert.equal(summaryText(without, options), "2 seleccionados");
-  assert.deepEqual(toggleOption(without, "Maipu", all), []);
+test("checking an option from all selects only that one", () => {
+  const picked = toggleOption([], "Maipu", all);
+  assert.deepEqual(picked, ["Maipu"]);
+  assert.equal(isChecked(picked, "Maipu"), true);
+  assert.equal(summaryText(toggleOption(picked, "Capital", all), options), "2 seleccionados");
 });
 
-test("the last selected option cannot be removed", () => {
-  assert.deepEqual(toggleOption(["Capital"], "Capital", all), ["Capital"]);
+test("unchecking the last option or checking every option returns to all", () => {
+  assert.deepEqual(toggleOption(["Capital"], "Capital", all), []);
+  assert.deepEqual(toggleOption(["Capital", "Godoy Cruz"], "Maipu", all), []);
   assert.equal(summaryText(["Capital"], options), "Capital");
 });
 

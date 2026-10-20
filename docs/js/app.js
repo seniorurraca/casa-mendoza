@@ -83,11 +83,11 @@ const optionsFrom = (values, labels = {}) => [...new Set(values)].sort().map(val
 
 function createFilterSelects() {
   const specs = [
-    ["departments", "Departamento", optionsFrom(rawListings.map(l => l.department))],
+    ["departments", "Departamento", optionsFrom(rawListings.map(l => l.department)), "Todos los departamentos"],
     ["sources", "Portales", optionsFrom(rawListings.flatMap(sourcesOf), SOURCE_LABEL)],
   ];
-  multiSelects = specs.map(([name, label, options]) => createMultiSelect(document.querySelector(`#${name}-select`), {
-    name, label, options,
+  multiSelects = specs.map(([name, label, options, allLabel]) => createMultiSelect(document.querySelector(`#${name}-select`), {
+    name, label, options, allLabel,
     getSelected: () => filters[name],
     onChange: selected => setFilters({ ...filters, [name]: selected }),
   }));
