@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script src="js/theme-boot.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,7 +18,8 @@
     <div class="topbar-inner">
       <a class="brand" href="./"><img src="favicon.svg" alt="" width="28" height="28"><span>Casa Mendoza</span></a>
       <div class="topbar-actions">
-        <button type="button" id="open-runs" class="icon-btn ghost" title="Registro de corridas" aria-label="Registro de corridas" data-icon="activity"></button>
+        <div id="theme-picker"></div>
+        <button type="button" id="open-runs" class="icon-btn ghost" title="Registro de corridas" aria-label="Registro de corridas" data-icon="activity" hidden></button>
         <button type="button" id="open-settings" class="icon-btn ghost" title="Configuración" aria-label="Configuración" data-icon="gear"></button>
         <div id="account" class="account"></div>
       </div>

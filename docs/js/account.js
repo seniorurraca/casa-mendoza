@@ -2,6 +2,7 @@ import { GOOGLE_CLIENT_ID } from "./account-config.js";
 import { escapeHtml } from "./format.js";
 import { isFresh, msUntilRefresh, tokenClaims } from "./google-token.js";
 import { storedValue } from "./storage.js";
+import { isDarkTheme } from "./theme.js";
 
 const GIS_URL = "https://accounts.google.com/gsi/client";
 
@@ -34,10 +35,9 @@ export function createAccount(container, { onLogin, onLogout }) {
 
   function renderSignedOut() {
     container.innerHTML = "";
-    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
     const compact = matchMedia("(max-width: 480px)").matches;
     google.accounts.id.renderButton(container, {
-      type: compact ? "icon" : "standard", theme: dark ? "filled_black" : "outline", size: "large", text: "signin", shape: "pill",
+      type: compact ? "icon" : "standard", theme: isDarkTheme() ? "filled_black" : "outline", size: "large", text: "signin", shape: "pill",
     });
   }
 

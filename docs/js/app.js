@@ -6,7 +6,9 @@ import { createCarousel } from "./carousel.js";
 import { createSettings } from "./settings.js";
 import { createRunsDialog } from "./runs-dialog.js";
 import { createAccount } from "./account.js";
-import { FAVORITES_API } from "./account-config.js";
+import { ADMIN_EMAILS, FAVORITES_API } from "./account-config.js";
+import { tokenClaims } from "./google-token.js";
+import { createThemePicker } from "./theme.js";
 import { favoritesApi } from "./favorites-api.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones, areaZone, countMatches } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
@@ -36,6 +38,7 @@ const moreFilters = document.querySelector(".more-filters");
 const moreCount = document.querySelector("#more-count");
 const sortField = document.querySelector(".sort");
 const detailDialog = document.querySelector("#detail");
+const runsButton = document.querySelector("#open-runs");
 const carousel = createCarousel(document.querySelector("#carousel"));
 
 let data = { listings: [] };
@@ -178,6 +181,7 @@ async function toggleFavorite(id) {
 }
 
 async function useAccount(token) {
+  runsButton.hidden = !ADMIN_EMAILS.includes(tokenClaims(token).email);
   const api = favoritesApi(FAVORITES_API, token);
   try {
     const ids = await api.merge(load(FAVORITES_KEY, []));
@@ -191,6 +195,7 @@ async function useAccount(token) {
 }
 
 function useGuest() {
+  runsButton.hidden = true;
   remoteFavorites = null;
   showFavorites(new Set(load(FAVORITES_KEY, [])));
 }
@@ -272,11 +277,12 @@ moreButton.addEventListener("click", () => {
 });
 
 fillIcons(document);
+createThemePicker(document.querySelector("#theme-picker"));
 
 const fetchJson = url => fetch(url, { cache: "no-cache" }).then(res => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status} ${url}`))));
 
 const runs = await fetchJson("data/runs.json").catch(() => []);
-createRunsDialog(document.querySelector("#runs"), document.querySelector("#open-runs"), runs);
+createRunsDialog(document.querySelector("#runs"), runsButton, runs);
 
 data = await fetchJson("data/listings.json");
 rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({ ...l, baseScore: l.score, baseBreakdown: l.breakdown }));
