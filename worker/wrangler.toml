@@ -9,4 +9,4 @@ ALLOWED_ORIGINS = "https://seniorurraca.github.io,http://localhost:8080"
 [[d1_databases]]
 binding = "DB"
 database_name = "casa-mendoza"
-database_id = ""
+database_id = "50e26192-487d-4536-9979-8893760088a9"
