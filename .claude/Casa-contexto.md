@@ -56,7 +56,7 @@ scraper/lib/
   sources.mjs   fetchGroups (grupos + dedupe por id), sourcesFor(config.sources, mode)
   currency.mjs  dólar oficial (dolarapi.com), parsePrice (US$ vs $ ARS)
   text.mjs      normalize (reusa docs/js/text.js), decodeEntities, detectFeatures
-  geo.mjs       haversine; minutos = km línea recta × minutesPerKm (1,8)
+  geo.mjs       re-exporta haversine/hasCoords de docs/js/geo.js; minutos = km línea recta × minutesPerKm (1,8)
   enrich.mjs    features (credito/patio/cochera/posesion/reciclar), minutes, ppm
   filters.mjs   AREA_RULES (sin precio, fuera de Gran Mendoza, lejos) / OFFER_RULES (precio alto, terreno caro/chico)
   dedupe.mjs    mismo inmueble en varios portales → uno + alsoOn
@@ -68,7 +68,8 @@ scraper/lib/
 docs/js/
   app.js            orquestación UI: estado, eventos, diálogos
   filters.js        DEFAULT_FILTERS, applyFilters, favoriteListings, loadFilters (descarta claves viejas)
-  zones.js          barrios peligrosos: defaults + prefs del usuario → zone + penalidad
+  zones.js          barrios peligrosos (texto) + áreas por radio: defaults + prefs del usuario → zone + penalidad
+  geo.js            haversineKm, hasCoords (compartido con el scraper)
   visits.js         última visita, markNew, seenAt
   card.js / detail.js / listing-view.js   tarjeta, detalle y helpers compartidos
   carousel.js       carrusel pantalla completa (flechas, teclado, swipe)
@@ -130,6 +131,7 @@ worker/src/
 - **Tabs Todos / ★ Favoritos:** Favoritos ignora todos los filtros (y las zonas "Ocultar"), ordena del último guardado al primero (`favoriteListings`) y cuenta los que ya no están publicados. En esa tab se oculta el formulario.
 - **Filtros:** precio mín/máx; Tipo / Departamento / Portales (multi-selección, `[]` = todos); minutos; apto crédito; patio; ocultar sospechosos. Orden: puntaje, precio, descuento vs zona, más nuevos.
 - **⚙ Configuración — barrios peligrosos:** la base viene de `config.dangerZones` y el usuario la edita (activar/desactivar, agregar). "Ocultar" (high) saca el aviso; "Advertir" (medium) muestra un chip y resta 15. Matchea contra `locationText` (dirección + slug). Ojo con nombres que también son calles.
+- **Ocultar por ubicación:** en el detalle de un aviso con coordenadas, "Ocultar 200 / 500 m alrededor" (`areaZone`) → zona `high` por radio (haversine), sin saber el nombre del barrio. Pide confirmación con la cantidad de avisos. Se guarda en `prefs.areas` (`casa-mendoza:zones`) y se quita en ⚙ Configuración → "Ocultos por ubicación".
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
 - **Carrusel** a pantalla completa desde la foto de la tarjeta. Badge "1/N" solo si hay más de 1 foto; Inmoclick no informa el total → solo ícono.
 - **Visitas:** banner "N avisos nuevos desde tu última visita (dd/mm/aaaa hh:mm)" + tag NUEVO abajo a la izquierda de la foto (arriba a la derecha está el puntaje). Sin visita previa → nuevo = últimos 3 días.

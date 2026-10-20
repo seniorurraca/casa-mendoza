@@ -18,6 +18,8 @@ function render(defaults, prefs, listings) {
     `<input type="checkbox" data-zone-toggle="${escapeHtml(z.name)}" ${prefs.disabled.includes(z.name) ? "" : "checked"} aria-label="Activar ${escapeHtml(z.name)}">`)).join("");
   const customRows = prefs.custom.map(z => zoneRow(z, countMatches(listings, z),
     `<button type="button" class="btn icon small" data-zone-remove="${escapeHtml(z.name)}" aria-label="Quitar ${escapeHtml(z.name)}">✕</button>`)).join("");
+  const areaRows = prefs.areas.map(z => zoneRow(z, countMatches(listings, z),
+    `<button type="button" class="btn icon small" data-area-remove="${escapeHtml(z.id)}" aria-label="Quitar ${escapeHtml(z.name)}">✕</button>`)).join("");
   return `
   <header class="detail-head">
     <h2>Configuración</h2>
@@ -29,6 +31,8 @@ function render(defaults, prefs, listings) {
     <ul class="zones">${defaultRows}</ul>
     <h3>Agregados por vos</h3>
     <ul class="zones">${customRows || `<li class="muted">Ninguno todavía.</li>`}</ul>
+    <h3>Ocultos por ubicación</h3>
+    <ul class="zones">${areaRows || `<li class="muted">Ninguno. Se agregan desde el detalle de un aviso.</li>`}</ul>
     <form class="zone-add">
       <input name="zoneName" placeholder="Barrio Bombal" required minlength="3" aria-label="Nombre del barrio">
       <select name="level" aria-label="Nivel"><option value="high">Ocultar</option><option value="medium">Advertir</option></select>
@@ -55,6 +59,8 @@ export function createSettings(dialog, { defaults, getListings, getPrefs, onChan
     const prefs = getPrefs();
     const removeName = event.target.closest("[data-zone-remove]")?.dataset.zoneRemove;
     if (removeName) update({ ...prefs, custom: prefs.custom.filter(z => z.name !== removeName) });
+    const removeArea = event.target.closest("[data-area-remove]")?.dataset.areaRemove;
+    if (removeArea) update({ ...prefs, areas: prefs.areas.filter(z => z.id !== removeArea) });
     if (event.target.closest("[data-zone-reset]")) update(DEFAULT_ZONE_PREFS);
     if (event.target === dialog || event.target.closest("[data-action=close]")) dialog.close();
   });

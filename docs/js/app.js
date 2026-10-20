@@ -8,7 +8,7 @@ import { createRunsDialog } from "./runs-dialog.js";
 import { createAccount } from "./account.js";
 import { FAVORITES_API } from "./account-config.js";
 import { favoritesApi } from "./favorites-api.js";
-import { DEFAULT_ZONE_PREFS, activeZones, applyZones } from "./zones.js";
+import { DEFAULT_ZONE_PREFS, activeZones, applyZones, areaZone, countMatches } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatDateTime, formatUsd } from "./format.js";
 import { SOURCE_LABEL, TYPE_LABEL, title } from "./listing-view.js";
@@ -77,6 +77,21 @@ function createFilterSelects() {
     getSelected: () => filters[name],
     onChange: selected => setFilters({ ...filters, [name]: selected }),
   }));
+}
+
+function updateZonePrefs(prefs) {
+  zonePrefs = prefs;
+  save(ZONES_KEY, zonePrefs);
+  recomputeZones();
+  render();
+}
+
+function ignoreArea(listing, radiusM) {
+  const zone = areaZone(listing, radiusM);
+  const count = countMatches(rawListings, zone);
+  if (!confirm(`Se van a ocultar ${count} ${count === 1 ? "aviso" : "avisos"} a menos de ${radiusM} m de ${listing.address}. Lo podés deshacer en ⚙ Configuración.`)) return;
+  updateZonePrefs({ ...zonePrefs, areas: [...zonePrefs.areas.filter(a => a.id !== zone.id), zone] });
+  detailDialog.close();
 }
 
 function recomputeZones() {
@@ -218,6 +233,8 @@ detailDialog.addEventListener("click", event => {
   if (favId) return toggleFavorite(favId);
   const target = event.target.closest("[data-action]");
   const id = detailDialog.querySelector(".detail")?.dataset.id;
+  const radius = event.target.closest("[data-ignore-radius]")?.dataset.ignoreRadius;
+  if (radius) return ignoreArea(byId(id), Number(radius));
   if (target?.dataset.action === "thumb") selectThumb(target.dataset.index);
   if (target?.dataset.action === "gallery-open") openCarousel(byId(id), Number(target.dataset.index));
   if (target?.dataset.action === "close" || event.target === detailDialog) detailDialog.close();
@@ -247,12 +264,7 @@ const settings = createSettings(document.querySelector("#settings"), {
   defaults: data.dangerZones ?? [],
   getListings: () => rawListings,
   getPrefs: () => zonePrefs,
-  onChange: prefs => {
-    zonePrefs = prefs;
-    save(ZONES_KEY, zonePrefs);
-    recomputeZones();
-    render();
-  },
+  onChange: updateZonePrefs,
 });
 document.querySelector("#open-settings").addEventListener("click", () => settings.open());
 

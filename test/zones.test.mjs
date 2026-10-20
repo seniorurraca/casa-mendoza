@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_ZONE_PREFS, activeZones, applyZones, countMatches, customZone, zoneFor } from "../docs/js/zones.js";
+import { DEFAULT_ZONE_PREFS, activeZones, applyZones, areaZone, countMatches, customZone, zoneFor } from "../docs/js/zones.js";
 import { applyFilters, DEFAULT_FILTERS } from "../docs/js/filters.js";
 import { wrapIndex } from "../docs/js/carousel.js";
 import { config } from "./helpers.mjs";
@@ -45,4 +45,16 @@ test("carousel index wraps both ways", () => {
   assert.equal(wrapIndex(-1, 5), 4);
   assert.equal(wrapIndex(5, 5), 0);
   assert.equal(wrapIndex(2, 5), 2);
+});
+
+test("an ignored area hides listings within its radius only", () => {
+  const center = listing("calle sin nombre", { id: "centro-area", lat: -32.9, lng: -68.8, address: "Calle 1" });
+  const area = areaZone(center, 500);
+  const near = listing("otra calle", { id: "near", lat: -32.903, lng: -68.8 });
+  const far = listing("lejos", { id: "far", lat: -32.91, lng: -68.8 });
+  const noCoords = listing("sin coordenadas", { id: "nc", lat: null, lng: null });
+  const zones = zonesWith({ areas: [area] });
+  assert.deepEqual([center, near, far, noCoords].map(l => zoneFor(l, zones)?.level ?? null), ["high", "high", null, null]);
+  assert.equal(countMatches([center, near, far, noCoords], area), 2);
+  assert.equal(area.name, "500 m alrededor de Calle 1");
 });

@@ -1,5 +1,15 @@
 import { escapeHtml, formatUsd } from "./format.js";
+import { hasCoords } from "./geo.js";
 import { avisoLink, breakdownList, chips, discountText, favButton, mapsLink, newTag, scoreTone, sources, title } from "./listing-view.js";
+
+const IGNORE_RADII_M = [200, 500];
+
+const ignoreArea = l => (!hasCoords(l) ? "" : `
+  <section class="ignore-area">
+    <h3>¿No te gusta la zona?</h3>
+    <p class="muted">Oculta este aviso y todos los que estén cerca, sin saber el nombre del barrio. Se deshace en ⚙ Configuración.</p>
+    <div class="ignore-buttons">${IGNORE_RADII_M.map(r => `<button type="button" class="btn" data-ignore-radius="${r}">Ocultar ${r} m alrededor</button>`).join("")}</div>
+  </section>`);
 
 const formatDate = iso => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString("es-AR") : null);
 
@@ -46,6 +56,7 @@ export const renderDetail = (l, isFavorite) => `
     <p class="description muted">Cargando…</p>
   </section>
   <details><summary>Por qué este puntaje</summary>${breakdownList(l)}</details>
+  ${ignoreArea(l)}
   <div class="actions sticky">
     ${avisoLink(l, { text: "Ver aviso original", className: "btn primary" })}
     ${mapsLink(l, { text: "Google Maps", className: "btn" })}
