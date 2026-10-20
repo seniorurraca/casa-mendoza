@@ -10,7 +10,7 @@ Buscador personal de casas y terrenos en el Gran Mendoza. Scrapea Inmoclick e In
 
 ## Uso local
 
-> No corras el scraper desde tu PC: comparte IP con tu navegación y los portales pueden bloquearla. El scraping real corre en GitHub Actions. Documentación técnica completa en [CLAUDE.md](CLAUDE.md).
+> No corras el scraper desde tu PC: comparte IP con tu navegación y los portales pueden bloquearla. El scraping real corre en GitHub Actions. Documentación técnica completa en [.claude/CLAUDE.md](.claude/CLAUDE.md).
 
 ```bash
 npm test
