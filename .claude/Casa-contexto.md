@@ -19,7 +19,7 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 
 ## Arquitectura
 
-Sin backend ni API. GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → GitHub Pages. El navegador hace todo el resto (filtros, zonas, favoritos, visitas) con `localStorage`.
+GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → GitHub Pages. El navegador hace todo el resto (filtros, zonas, visitas) con `localStorage`. Única pieza con backend: **favoritos por cuenta de Google** en un Cloudflare Worker + D1 (`worker/`).
 
 | Carpeta / archivo | Qué es | Dónde corre | Si cambia → |
 |---|---|---|---|
@@ -30,6 +30,7 @@ Sin backend ni API. GitHub Actions (cron) → `scraper/` (Node) → JSON commite
 | `.github/workflows/scrape.yml` | Cron full + quick | Actions | Push |
 | `test/` | `node:test` sin dependencias, fixtures HTML reales recortados | Local y Actions (antes de scrapear) | — |
 | `research/` | Investigación de mercado inicial | — | — |
+| `worker/` | Cloudflare Worker `casa-mendoza-favoritos` + D1 `casa-mendoza` (favoritos por cuenta) | Cloudflare (`*.workers.dev`) | `cd worker; npx.cmd wrangler deploy` (no se publica solo) |
 
 ### Corridas (`scrape.yml`)
 
@@ -76,7 +77,15 @@ docs/js/
   runs-dialog.js    diálogo 📋 Registro + punto rojo en el botón si fail/stale
   multiselect.js    combo multi-selección (Tipo, Departamento, Portales)
   loaders.js        fotos (API Inmoclick o details.json) + descripción, con caché
+  account.js        login Google Identity Services (botón, auto_select, renueva el token 1 min antes de vencer)
+  account-config.js GOOGLE_CLIENT_ID + FAVORITES_API (vacíos → sin login, favoritos solo en el navegador)
+  google-token.js   tokenClaims, isFresh, msUntilRefresh
+  favorites-api.js  merge / add / remove contra el Worker
   maps.js, format.js, icons.js, storage.js, text.js
+worker/src/
+  index.mjs         rutas + CORS (ALLOWED_ORIGINS)
+  google-token.mjs  verifica el ID token: firma RS256 con las claves de Google, iss, aud = GOOGLE_CLIENT_ID, exp, email_verified, email ∈ ALLOWED_EMAILS
+  favorites.mjs     SQL D1 (tabla en worker/schema.sql)
 ```
 
 ## Pipeline del scraper
@@ -125,8 +134,12 @@ docs/js/
 - **Carrusel** a pantalla completa desde la foto de la tarjeta. Badge "1/N" solo si hay más de 1 foto; Inmoclick no informa el total → solo ícono.
 - **Visitas:** banner "N avisos nuevos desde tu última visita (dd/mm/aaaa hh:mm)" + tag NUEVO abajo a la izquierda de la foto (arriba a la derecha está el puntaje). Sin visita previa → nuevo = últimos 3 días.
 - **📋 Registro:** lista de corridas (`runs.json`), estado general y link a cada run de Actions. Si `runs.json` no existe → lista vacía.
+- **Favoritos por cuenta:** "Iniciar sesión" (Google) a la derecha de las tabs. Al entrar, los favoritos del navegador se suman a la cuenta (`POST /favorites/merge`) y se borran del `localStorage`. Cada mail tiene su lista. Al salir vuelve a los favoritos locales (vacíos). Cambios optimistas: si el Worker falla, se revierte y avisa.
+  - API: `POST /favorites/merge {ids}` → lista; `PUT|DELETE /favorites/:id`. Header `Authorization: Bearer <ID token de Google>`.
+  - `ALLOWED_EMAILS` es **secret** del Worker (no va al repo público). `GOOGLE_CLIENT_ID` y la URL del Worker son públicos.
+  - Pantalla de consentimiento de Google en modo Testing con los dos mails como test users: sin verificación de Google ni dominio propio.
 - **Storage:**
-  - `localStorage`: `casa-mendoza:filters`, `:favorites`, `:zones`, `:last-visit`.
+  - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
   - Todo es por navegador: celular y PC son independientes.
 - Cards de alto uniforme: foto 16:9 fija (`object-fit: cover`), título y dirección en 1 línea, datos en máximo 2.
@@ -195,6 +208,5 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 - Alertas (Telegram/email) para avisos con puntaje > 85 ("a futuro").
 - Mapa con todos los avisos (Leaflet + OSM).
 - Más fuentes: RE/MAX, MercadoLibre (API oficial), alertas por email de Zonaprop/Argenprop vía Cloudflare Email Worker, bookmarklet.
-- Favoritos sincronizados entre dispositivos (Cloudflare Worker + KV; el usuario tiene el plan de USD 5).
 - Partir `details.json` si pesa demasiado en móvil.
 - Recalibrar `minutesPerKm` con tiempos reales (OSRM) por zona.

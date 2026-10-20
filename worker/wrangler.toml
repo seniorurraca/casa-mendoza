@@ -1,0 +1,12 @@
+name = "casa-mendoza-favoritos"
+main = "src/index.mjs"
+compatibility_date = "2026-10-01"
+
+[vars]
+GOOGLE_CLIENT_ID = ""
+ALLOWED_ORIGINS = "https://seniorurraca.github.io,http://localhost:8080"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "casa-mendoza"
+database_id = ""

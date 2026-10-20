@@ -5,6 +5,9 @@ import { renderDetail, renderThumbs } from "./detail.js";
 import { createCarousel } from "./carousel.js";
 import { createSettings } from "./settings.js";
 import { createRunsDialog } from "./runs-dialog.js";
+import { createAccount } from "./account.js";
+import { FAVORITES_API } from "./account-config.js";
+import { favoritesApi } from "./favorites-api.js";
 import { DEFAULT_ZONE_PREFS, activeZones, applyZones } from "./zones.js";
 import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatDateTime, formatUsd } from "./format.js";
@@ -38,6 +41,7 @@ let favorites = new Set(load(FAVORITES_KEY, []));
 let zonePrefs = { ...DEFAULT_ZONE_PREFS, ...load(ZONES_KEY, {}) };
 let visible = PAGE_SIZE;
 let tab = "all";
+let remoteFavorites = null;
 const previousVisit = startVisit({ local: storedValue(VISIT_KEY), session: storedValue(VISIT_SESSION_KEY, "session") });
 
 const byId = id => listings.find(l => l.id === id);
@@ -124,11 +128,43 @@ function renderNewBanner(results) {
   newBanner.classList.toggle("has-new", count > 0);
 }
 
-function toggleFavorite(id) {
-  favorites.has(id) ? favorites.delete(id) : favorites.add(id);
-  save(FAVORITES_KEY, [...favorites]);
+function showFavorites(next, id) {
+  favorites = next;
   render();
-  if (detailDialog.open) openDetail(id);
+  if (id && detailDialog.open) openDetail(id);
+}
+
+async function toggleFavorite(id) {
+  const adding = !favorites.has(id);
+  const before = new Set(favorites);
+  const next = new Set(favorites);
+  adding ? next.add(id) : next.delete(id);
+  showFavorites(next, id);
+  if (!remoteFavorites) return save(FAVORITES_KEY, [...favorites]);
+  try {
+    await (adding ? remoteFavorites.add(id) : remoteFavorites.remove(id));
+  } catch {
+    showFavorites(before, id);
+    alert("No se pudo guardar el favorito. Si sigue fallando, salí y volvé a entrar con Google.");
+  }
+}
+
+async function useAccount(token) {
+  const api = favoritesApi(FAVORITES_API, token);
+  try {
+    const ids = await api.merge(load(FAVORITES_KEY, []));
+    save(FAVORITES_KEY, []);
+    remoteFavorites = api;
+    showFavorites(new Set(ids));
+  } catch {
+    account.logout();
+    alert("No se pudieron cargar tus favoritos. Probá entrar de nuevo.");
+  }
+}
+
+function useGuest() {
+  remoteFavorites = null;
+  showFavorites(new Set(load(FAVORITES_KEY, [])));
 }
 
 async function openCarousel(listing, start = 0) {
@@ -223,3 +259,4 @@ document.querySelector("#open-settings").addEventListener("click", () => setting
 createFilterSelects();
 syncForm();
 render();
+const account = createAccount(document.querySelector("#account"), { onLogin: useAccount, onLogout: useGuest });

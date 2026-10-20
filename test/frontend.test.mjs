@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mapsUrl } from "../docs/js/maps.js";
+import { isFresh, tokenClaims } from "../docs/js/google-token.js";
 import { DEFAULT_FILTERS, applyFilters, favoriteListings } from "../docs/js/filters.js";
 
 const listing = (overrides = {}) => ({
@@ -40,4 +41,14 @@ test("favorites ignore filters and show the last saved first", () => {
 
 test("old onlyFavorites filter is dropped when loading", () => {
   assert.equal("onlyFavorites" in DEFAULT_FILTERS, false);
+});
+
+test("google token claims are read and expiry is checked with a margin", () => {
+  const encode = obj => Buffer.from(JSON.stringify(obj)).toString("base64url");
+  const token = `${encode({ alg: "RS256" })}.${encode({ email: "a@b.com", given_name: "Natalí", exp: 1000 })}.sig`;
+  assert.equal(tokenClaims(token).given_name, "Natalí");
+  assert.equal(isFresh(token, 900_000), true);
+  assert.equal(isFresh(token, 950_000), false);
+  assert.equal(isFresh(null), false);
+  assert.equal(tokenClaims("basura"), null);
 });
