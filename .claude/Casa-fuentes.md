@@ -8,7 +8,7 @@ Detalle técnico de cada portal. Las reglas de scraping (no correr desde la PC d
 | Inmoup | ✅ en uso | solo full | `scraper/sources/inmoup.mjs` |
 | RE/MAX | ✅ en uso (desde 2026-10-20) | full + quick | `scraper/sources/remax.mjs` |
 | MercadoLibre | web 200, API pública 403 → solo con app oficial de ML Developers (la tiene que crear el usuario) | — | — |
-| Argenprop | candidato: **200 sin desafío** el 2026-10-20 (antes 403). `robots.txt` permite solo `?pagina-1..3` por búsqueda → habría que cubrir el inventario con muchas búsquedas acotadas (departamento × rango de precio). 20–54 avisos por página, HTML server-side (`listing__item`) | — | — |
+| Argenprop | ❌ desafío anti-bot: la 1ª consulta dio 200, pero desde la 4ª (2026-10-20) responde **202 vacío y redirige a `/n0`** (mismo patrón WAF que bloqueó Inmoclick). No viable sin evadir. Además `robots.txt` solo permite `?pagina-1..3` por búsqueda. Datos útiles si algún día se habilita: atributos en `<a class="card">` (`idaviso`, `montooperacion`, `idmoneda` 2=USD, `dormitorios`, `idpartido`), sin coordenadas | — | No evadir |
 | Inmuebles Clarín | mismo grupo y mismo `robots.txt` que Argenprop → mismo inventario, no suma | — | — |
 | MendozaProp | ✅ en uso (desde 2026-10-20) | solo full | `scraper/sources/mendozaprop.mjs` |
 | Liderprop (`liderprop.com/es-ar/`) | por relevar: plataforma "creada por y para profesionales", HTML server-side | — | — |
