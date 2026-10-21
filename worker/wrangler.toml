@@ -5,7 +5,7 @@ compatibility_date = "2026-10-01"
 [vars]
 GOOGLE_CLIENT_ID = "324394539834-otdf7skg919fk7ohcqsd3c8rs3fsejc3.apps.googleusercontent.com"
 ALLOWED_EMAILS = "*"
-ALLOWED_ORIGINS = "https://casa-mendoza.pages.dev,https://seniorurraca.github.io,http://localhost:8080"
+ALLOWED_ORIGINS = "https://casa-mendoza.pages.dev,http://localhost:8080"
 
 [[d1_databases]]
 binding = "DB"

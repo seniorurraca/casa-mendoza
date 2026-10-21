@@ -14,19 +14,19 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 | Qué | Dónde |
 |---|---|
 | Repo (público) | `seniorurraca/casa-mendoza`, push directo a `main` |
-| Sitio | **https://casa-mendoza.pages.dev** (Cloudflare Pages conectado al repo: cada push a `main` publica `docs/`, sin build). Para que la URL no muestre el usuario de GitHub (2026-10-20). Sigue activo también https://seniorurraca.github.io/casa-mendoza/ (GitHub Pages) |
+| Sitio | **https://casa-mendoza.pages.dev** (Cloudflare Pages conectado al repo: cada push a `main` publica `docs/`, sin build). Para que la URL no muestre el usuario de GitHub (2026-10-20). **GitHub Pages está apagado** (la dirección `seniorurraca.github.io/casa-mendoza` da 404) |
 | Worker favoritos | https://casa-mendoza-favoritos.wow-armeria-api.workers.dev (cuenta Cloudflare personal `orozco.andres96`, D1 `casa-mendoza`). `wrangler` ya logueado en la PC |
 | Datos | `docs/data/listings.json` + `details.json` + `seen.json` + `runs.json`, generados por Actions. **No editar a mano.** |
 
 ## Arquitectura
 
-GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → GitHub Pages. El navegador hace todo el resto (filtros, zonas, visitas) con `localStorage`. Única pieza con backend: **favoritos por cuenta de Google** en un Cloudflare Worker + D1 (`worker/`).
+GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare Pages. El navegador hace todo el resto (filtros, zonas, visitas) con `localStorage`. Única pieza con backend: **favoritos por cuenta de Google** en un Cloudflare Worker + D1 (`worker/`).
 
 | Carpeta / archivo | Qué es | Dónde corre | Si cambia → |
 |---|---|---|---|
 | `scraper/` | Scraper + pipeline (enrich, filtros, dedupe, mercado, puntaje, historial) | GitHub Actions | Push a `main`. Corre en el próximo cron (o a mano con Run workflow) |
-| `docs/` | Sitio estático (HTML/CSS/JS sin build) | GitHub Pages | Se publica solo al llegar a `main` (~1 min) |
-| `docs/data/` | Salida del scraper | Pages | Solo lo commitea el bot de Actions |
+| `docs/` | Sitio estático (HTML/CSS/JS sin build) | Cloudflare Pages | Se publica solo al llegar a `main` (~1 min) |
+| `docs/data/` | Salida del scraper | Cloudflare Pages | Solo lo commitea el bot de Actions |
 | `config.json` | Fuentes, filtros, zonas peligrosas base, puntaje | scraper (y `dangerZones` viaja al frontend en el JSON) | Push. Impacta en la próxima corrida |
 | `.github/workflows/scrape.yml` | Cron full + quick | Actions | Push |
 | `test/` | `node:test` sin dependencias, fixtures HTML reales recortados | Local y Actions (antes de scrapear) | — |
@@ -143,7 +143,7 @@ worker/src/
 - **Favoritos por cuenta:** "Iniciar sesión" (Google) a la derecha de las tabs. Al entrar, los favoritos del navegador se suman a la cuenta (`POST /favorites/merge`) y se borran del `localStorage`. Cada mail tiene su lista. Al salir vuelve a los favoritos locales (vacíos). Cambios optimistas: si el Worker falla, se revierte y avisa.
   - API: `POST /favorites/merge {ids}` → lista; `PUT|DELETE /favorites/:id`. Header `Authorization: Bearer <ID token de Google>`.
   - **Registro abierto** (decisión del usuario 2026-10-20): `ALLOWED_EMAILS = "*"` en `wrangler.toml` → cualquier cuenta Google con mail verificado tiene su lista. Para cerrarlo: lista de mails separada por comas (mejor como `wrangler secret`, no en el repo público).
-  - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://casa-mendoza.pages.dev`, `https://seniorurraca.github.io`, `http://localhost:8080` (los mismos en `ALLOWED_ORIGINS` del Worker). Branding: `/`, `/privacidad`, `/condiciones` en pages.dev (Pages sirve sin `.html`; con `.html` hace 308).
+  - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://casa-mendoza.pages.dev`, `http://localhost:8080` (los mismos en `ALLOWED_ORIGINS` del Worker). Branding: `/`, `/privacidad`, `/condiciones` en pages.dev (Pages sirve sin `.html`; con `.html` hace 308).
 - **Storage:**
   - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`, `:theme`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
@@ -161,7 +161,7 @@ worker/src/
 
 ## Qué hago yo vs. el usuario
 
-Hago yo (sin pedir): editar código, tests, commit + push a `main`, disparar o revisar workflows con `gh`, probar el sitio local en el navegador integrado.
+Hago yo (sin pedir): editar código, tests, commit + push a `main`, disparar o revisar workflows con `gh`, probar el sitio local en el navegador integrado, publicar el Worker y consultar D1 con `wrangler` (logueado en la PC del usuario), actualizar este contexto.
 
 Hace el usuario: usar el sitio, decidir criterios (precio, zonas, pesos), revisar la lista de barrios peligrosos.
 
@@ -197,8 +197,9 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 2. Test que falle → cambio → `npm test` en verde.
 3. UI: probar con `npx http-server docs` en el navegador integrado (escritorio + 375 px, sin scroll horizontal, consola sin errores).
 4. Actualizar este contexto si cambia arquitectura, datos, config o comportamiento.
-5. `git pull --rebase` → commit → push a `main`. Verificar el deploy de Pages (`gh run list`).
+5. `git pull --rebase` → commit → push a `main`. Verificar el deploy en Cloudflare Pages (`curl -I https://casa-mendoza.pages.dev/…` o el panel de Cloudflare). Si cambió `worker/`: `cd worker; npx wrangler deploy` (no se publica con el push).
 6. No disparar scraping si el usuario no lo pidió: los cambios del scraper rigen desde la próxima corrida programada.
+7. **Siempre** actualizar este archivo al terminar cada cambio (pedido explícito del usuario): arquitectura, URLs, config, decisiones y comportamiento nuevo, para que la próxima conversación arranque con todo.
 
 ## Historial de decisiones
 
