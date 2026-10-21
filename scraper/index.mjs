@@ -10,7 +10,7 @@ import { enrich } from "./lib/enrich.mjs";
 import { AREA_RULES, OFFER_RULES, partition } from "./lib/filters.mjs";
 import { buildMarket, zoneMedian } from "./lib/market.mjs";
 import { scoreListing } from "./lib/score.mjs";
-import { readPrevious, registerSeen, upsert, withHistory } from "./lib/history.mjs";
+import { flagNew, readPrevious, registerSeen, upsert, withHistory } from "./lib/history.mjs";
 import { dataFile, readJson, writeJson } from "./lib/files.mjs";
 import { appendRun, runUrl } from "./lib/runs.mjs";
 import { dedupe } from "./lib/dedupe.mjs";
@@ -56,10 +56,14 @@ const offer = partition(unique, config, OFFER_RULES);
 
 const now = new Date().toISOString();
 const seen = registerSeen(readJson(seenPath, {}), previous.data.listings, scraped, now);
-const listings = offer.kept
+const previousFullBySegment = previous.data.lastFullBySegment ?? { venta: previous.data.lastFullAt };
+const segmentRanBefore = Boolean(previousFullBySegment[segment]);
+const lastFullBySegment = mode === "full" ? { ...previousFullBySegment, [segment]: now } : previousFullBySegment;
+const scored = offer.kept
   .map(l => ({ ...pick(l, PUBLIC_FIELDS), ...scoreListing(l, zoneMedian(market, l, config.segment.minSamples), config.scoring, config.maxMinutes) }))
   .map(l => withHistory(l, previous.byId, seen))
   .sort((a, b) => b.score - a.score);
+const listings = flagNew(scored, { mode, segment, now, previousById: previous.byId, segmentRanBefore });
 const newCount = listings.filter(l => l.firstSeenAt === now).length;
 
 const segmentStats = { ...previous.data.stats?.segments, [segment]: { scanned: scraped.length, discarded: { ...area.discarded, ...offer.discarded } } };
@@ -73,6 +77,7 @@ const result = {
   generatedAt: now,
   startedAt,
   lastFullAt: mode === "full" ? now : previous.data.lastFullAt ?? previous.data.generatedAt,
+  lastFullBySegment,
   usdRate,
   stats: mode === "full" ? fullStats : { ...previous.data.stats, kept: listings.length, quickNew: newCount },
   dangerZones: config.dangerZones,

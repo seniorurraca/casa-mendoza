@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { registerSeen, withHistory } from "../scraper/lib/history.mjs";
+import { flagNew, registerSeen, withHistory } from "../scraper/lib/history.mjs";
 import { appendRun, logTail } from "../scraper/lib/runs.mjs";
 import { healthOf } from "../docs/js/runs.js";
 
@@ -48,4 +48,26 @@ test("health flags failures and runs that stopped", () => {
   assert.equal(healthOf([{ ok: false, finishedAt: NOW }], now), "fail");
   assert.equal(healthOf([{ ok: true, finishedAt: "2026-10-20T01:00:00.000Z" }], now), "stale");
   assert.equal(healthOf([{ ok: true, finishedAt: "2026-10-20T05:00:00.000Z" }], now), "ok");
+});
+
+const NEXT_DAY = "2026-10-21T09:00:00.000Z";
+const casa = (id, firstSeenAt, extra = {}) => ({ id, type: "casa", firstSeenAt, ...extra });
+
+test("a full run marks new only what it found for the first time", () => {
+  const listings = [casa("hoy", NEXT_DAY), casa("ayer", NOW), casa("depto", NOW, { type: "departamento", operation: "venta" })];
+  const previousById = new Map([["depto", { isNew: true }]]);
+  const flags = flagNew(listings, { mode: "full", segment: "venta", now: NEXT_DAY, previousById, segmentRanBefore: true });
+  assert.deepEqual(flags.map(l => l.isNew), [true, false, true]);
+});
+
+test("quick runs add new ones and keep the day's flags", () => {
+  const previousById = new Map([["temprano", { isNew: true }], ["viejo", { isNew: false }]]);
+  const listings = [casa("quick", NEXT_DAY), casa("temprano", NOW), casa("viejo", NOW)];
+  const flags = flagNew(listings, { mode: "quick", segment: "venta", now: NEXT_DAY, previousById, segmentRanBefore: true });
+  assert.deepEqual(flags.map(l => l.isNew), [true, true, false]);
+});
+
+test("the first ever run of a segment is a baseline with nothing new", () => {
+  const flags = flagNew([casa("d", NOW, { type: "departamento", operation: "venta" })], { mode: "full", segment: "deptos", now: NOW, previousById: new Map(), segmentRanBefore: false });
+  assert.equal(flags[0].isNew, false);
 });

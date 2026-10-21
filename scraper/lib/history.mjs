@@ -1,4 +1,5 @@
 import { readJson } from "./files.mjs";
+import { segmentOf } from "./segments.mjs";
 
 const detailOf = entry => (typeof entry === "string" ? { description: entry, photos: [] } : entry ?? { description: "", photos: [] });
 
@@ -26,6 +27,16 @@ export function withHistory(listing, previousById, seen) {
   const firstSeenAt = seen[listing.id];
   const prevUsd = !before ? null : before.usd !== listing.usd ? before.usd : before.prevUsd;
   return { ...listing, firstSeen: firstSeenAt.slice(0, 10), firstSeenAt, prevUsd };
+}
+
+export function flagNew(listings, { mode, segment, now, previousById, segmentRanBefore }) {
+  return listings.map(l => {
+    const foundNow = l.firstSeenAt === now;
+    const wasNew = previousById.get(l.id)?.isNew ?? false;
+    if (mode === "quick") return { ...l, isNew: foundNow || wasNew };
+    if (segmentOf(l) !== segment) return { ...l, isNew: wasNew };
+    return { ...l, isNew: foundNow && segmentRanBefore };
+  });
 }
 
 export const upsert = (existing, incoming) => {

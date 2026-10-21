@@ -15,14 +15,11 @@ import { loadDescription, loadPhotos } from "./loaders.js";
 import { formatDateTime, formatUsd } from "./format.js";
 import { SOURCE_LABEL, title } from "./listing-view.js";
 import { fillIcons } from "./icons.js";
-import { load, save, storedValue } from "./storage.js";
-import { markNew, newSince, startVisit } from "./visits.js";
+import { load, save } from "./storage.js";
 
 const FILTERS_KEY = "casa-mendoza:filters";
 const FAVORITES_KEY = "casa-mendoza:favorites";
 const ZONES_KEY = "casa-mendoza:zones";
-const VISIT_KEY = "casa-mendoza:last-visit";
-const VISIT_SESSION_KEY = "casa-mendoza:visit-baseline";
 const PAGE_SIZE = 40;
 
 const form = document.querySelector("#filters");
@@ -51,7 +48,6 @@ let zonePrefs = { ...DEFAULT_ZONE_PREFS, ...load(ZONES_KEY, {}) };
 let visible = PAGE_SIZE;
 let tab = "all";
 let remoteFavorites = null;
-const previousVisit = startVisit({ local: storedValue(VISIT_KEY), session: storedValue(VISIT_SESSION_KEY, "session") });
 
 const byId = id => listings.find(l => l.id === id);
 const fieldValue = el => (el.type === "checkbox" ? el.checked : el.type === "number" || el.type === "range" ? Number(el.value) : el.value);
@@ -153,11 +149,9 @@ function render() {
 }
 
 function renderNewBanner(results) {
-  newBanner.hidden = !previousVisit;
-  if (!previousVisit) return;
   const count = results.filter(l => l.isNew).length;
-  const since = `desde tu última visita (${formatDateTime(previousVisit)})`;
-  newBanner.textContent = count ? `${count} ${count === 1 ? "aviso nuevo" : "avisos nuevos"} ${since}` : `Sin avisos nuevos ${since}`;
+  newBanner.textContent = count ? `${count} ${count === 1 ? "aviso nuevo" : "avisos nuevos"} hoy` : "Sin avisos nuevos hoy";
+  newBanner.title = "Nuevo = no estaba en la corrida completa anterior. Deja de serlo en la próxima corrida diaria (06:00).";
   newBanner.classList.toggle("has-new", count > 0);
 }
 
@@ -288,7 +282,7 @@ const runs = await fetchJson("data/runs.json").catch(() => []);
 createRunsDialog(document.querySelector("#runs"), runsButton, runs);
 
 data = await fetchJson("data/listings.json");
-rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({
+rawListings = data.listings.map(l => ({
   ...l,
   ars: operationOf(l) === "alquiler" ? monthlyArs(l.usd, data.usdRate) : null,
   baseScore: l.score,

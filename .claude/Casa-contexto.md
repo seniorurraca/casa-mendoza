@@ -78,7 +78,7 @@ docs/js/
   filters.js        DEFAULT_FILTERS, applyFilters, favoriteListings, loadFilters (descarta claves viejas)
   zones.js          barrios peligrosos (texto) + áreas por radio: defaults + prefs del usuario → zone + penalidad
   geo.js            haversineKm, hasCoords (compartido con el scraper)
-  visits.js         última visita, markNew, seenAt
+  visits.js         seenAt (fecha de primera aparición, para ordenar)
   card.js / detail.js / listing-view.js   tarjeta, detalle y helpers compartidos
   carousel.js       carrusel pantalla completa (flechas, teclado, swipe)
   settings.js       diálogo ⚙ Configuración (barrios)
@@ -106,7 +106,7 @@ worker/src/
 5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10% (sin coordenadas: mismo departamento y superficie obligatoria). Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
 6. `buildMarket(unique, config.segment, MARKET_KEYS[segment])` (solo full; las demás claves se conservan): mediana USD/m² por clave × departamento. Claves (`marketKey`): `casa`, `terreno`, `departamento`, `alquiler-casa`, `alquiler-departamento` (alquiler en USD/m²/mes). m² útil (`usefulArea`): casa = cubierta, terreno = total, depto = cubierta o total. Segmento casas USD 15–90k, terrenos 3–90k; fallback a la mediana general si n < 5. **Antes** de `OFFER_RULES` para no sesgar terrenos.
 7. `OFFER_RULES` (> USD 150k; terreno > 25k o < 200 m²).
-8. `registerSeen()` + `scoreListing()` + `withHistory()` → `listings.json` + `details.json` + `seen.json`; se agrega la corrida a `runs.json`.
+8. `registerSeen()` + `scoreListing()` + `withHistory()` + `flagNew()` → `listings.json` + `details.json` + `seen.json`; se agrega la corrida a `runs.json`.
    - `seen.json` = `{ id: firstSeenAt }` de **todo** lo scrapeado (también descartados y perdedores del dedupe), nunca se borra. `firstSeenAt` sale de ahí: un aviso que falta en una corrida y vuelve, que cambia de ganador en el dedupe o que baja de precio y entra **no** es nuevo. Antes de esto (hasta 2026-10-20) eso generaba falsos NUEVO.
 
 ### Puntaje (`score.mjs`, pesos en `config.scoring`)
@@ -148,15 +148,14 @@ worker/src/
 - **Ocultar por ubicación:** en el detalle de un aviso con coordenadas, "Ocultar 200 / 500 m alrededor" (`areaZone`) → zona `high` por radio (haversine), sin saber el nombre del barrio. Pide confirmación con la cantidad de avisos. Se guarda en `prefs.areas` (`casa-mendoza:zones`) y se quita en ⚙ Configuración → "Ocultos por ubicación".
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
 - **Carrusel** a pantalla completa desde la foto de la tarjeta. Badge "1/N" solo si hay más de 1 foto; Inmoclick no informa el total → solo ícono.
-- **Visitas:** banner "N avisos nuevos desde tu última visita (dd/mm/aaaa hh:mm)" + tag NUEVO abajo a la izquierda de la foto (arriba a la derecha está el puntaje). Sin visita previa → nuevo = últimos 3 días.
+- **Nuevo (desde 2026-10-20):** lo calcula el scraper (`flagNew`, campo `isNew`), igual para todos y en cualquier dispositivo. Nuevo = no estaba en la corrida **full** anterior de su segmento: lo encontrado en una full queda nuevo hasta la full siguiente (24 h); lo encontrado en una quick queda nuevo hasta la próxima full de venta (06:00). La primera full de un segmento es línea de base (nada nuevo). `lastFullBySegment` en `listings.json`. Banner "N avisos nuevos hoy" + tag NUEVO abajo a la izquierda de la foto. Contra (aceptada por el usuario): si no entrás en varios días, solo ves como nuevo lo del último día; "Más nuevos" ordena por `firstSeenAt`.
 - **📋 Registro:** lista de corridas (`runs.json`), estado general y link a cada run de Actions. Si `runs.json` no existe → lista vacía.
 - **Favoritos por cuenta:** "Iniciar sesión" (Google) a la derecha de las tabs. Al entrar, los favoritos del navegador se suman a la cuenta (`POST /favorites/merge`) y se borran del `localStorage`. Cada mail tiene su lista. Al salir vuelve a los favoritos locales (vacíos). Cambios optimistas: si el Worker falla, se revierte y avisa.
   - API: `POST /favorites/merge {ids}` → lista; `PUT|DELETE /favorites/:id`. Header `Authorization: Bearer <ID token de Google>`.
   - **Registro abierto** (decisión del usuario 2026-10-20): `ALLOWED_EMAILS = "*"` en `wrangler.toml` → cualquier cuenta Google con mail verificado tiene su lista. Para cerrarlo: lista de mails separada por comas (mejor como `wrangler secret`, no en el repo público).
   - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://casa-mendoza.pages.dev`, `http://localhost:8080` (los mismos en `ALLOWED_ORIGINS` del Worker). Branding: `/`, `/privacidad`, `/condiciones` en pages.dev (Pages sirve sin `.html`; con `.html` hace 308).
 - **Storage:**
-  - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`, `:theme`.
-  - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
+  - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:google-token`, `:theme`. (`:last-visit` y `visit-baseline` quedaron sin uso.)
   - Todo es por navegador: celular y PC son independientes.
 - Cards: foto 4:3 fija (`object-fit: cover`), título y dirección en 1 línea.
 
