@@ -53,6 +53,7 @@ scraper/log-failure.mjs        registra una corrida fallida en runs.json (lo lla
 scraper/sources/inmoclick.mjs  fuente Inmoclick      (detalles en Casa-fuentes.md)
 scraper/sources/inmoup.mjs     fuente Inmoup
 scraper/sources/remax.mjs      fuente RE/MAX
+scraper/sources/mendozaprop.mjs fuente MendozaProp (API JSON, sin coordenadas)
 scraper/lib/
   http.mjs      fetch con User-Agent; status != 200 = error; withRetry (backoff)
   sources.mjs   fetchGroups (grupos + dedupe por id), fetchPaginated (páginas con total + reintento; Inmoup y RE/MAX), sourcesFor(config.sources, mode)
@@ -97,7 +98,7 @@ worker/src/
 2. `sourcesFor(config.sources, mode)` → `fetchAll()` de cada fuente → `enrich()`.
 3. `AREA_RULES`.
 4. quick: `upsert(previous.hydrated, nuevos)`. full: solo lo scrapeado.
-5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10%. Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
+5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10% (sin coordenadas: mismo departamento y superficie obligatoria). Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
 6. `buildMarket()` (solo full): mediana USD/m² por tipo × departamento. Segmento casas USD 15–90k, terrenos 3–90k; fallback a la mediana general si n < 5. **Antes** de `OFFER_RULES` para no sesgar terrenos.
 7. `OFFER_RULES` (> USD 150k; terreno > 25k o < 200 m²).
 8. `registerSeen()` + `scoreListing()` + `withHistory()` → `listings.json` + `details.json` + `seen.json`; se agrega la corrida a `runs.json`.

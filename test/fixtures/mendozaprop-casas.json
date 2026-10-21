@@ -1,0 +1,68 @@
+[
+ {
+  "id": 404952,
+  "external_id": 1712013597,
+  "origin": "admin",
+  "owner_id": 1973,
+  "property_type_id": 3,
+  "property_type_name": "Casa",
+  "transaction_type_id": 2,
+  "transaction_type_name": "Venta",
+  "title": "VENDO PROPIEDAD CON 6 HABITACIONES",
+  "currency_id": 1,
+  "price": "80000",
+  "images": [
+   "https://cdn.mendozaprop.com/mendozaprop/properties/uploader/1747748541.891181.jpg",
+   "https://cdn.mendozaprop.com/mendozaprop/properties/uploader/1747748954.9166696.jpg"
+  ],
+  "description": "VENDO o PERMUTO . Hermosa casa estilo español, 6 Dormitorios todos con placares embutidos, 2 Baños, Cocina comedor , Living, Estar para oficina, Lavandería con placard, Patio interno, Terraza, Jardín.",
+  "m2": 220,
+  "m2_unit": "m2",
+  "m2_covered": 170,
+  "bathrooms": 2,
+  "bedrooms": 6,
+  "address": "Villa Hipódromo, Godoy Cruz, Mendoza, Argentina",
+  "parking": 2,
+  "credit": 0,
+  "regions": [
+   "godoycruz"
+  ],
+  "active": 1,
+  "rooms": null,
+  "owner_logo": "https://cdn.mendozaprop.com/mendozaprop/clients/3/7/0000001354-130624013417-706835.png",
+  "owner_company": "Jezabel Castro Horacio"
+ },
+ {
+  "id": 936751,
+  "external_id": 1724453770,
+  "origin": "admin",
+  "owner_id": 967,
+  "property_type_id": 3,
+  "property_type_name": "Casa",
+  "transaction_type_id": 2,
+  "transaction_type_name": "Venta",
+  "title": "Casa en Quinta Sección. Calle Olascoaga",
+  "currency_id": 1,
+  "price": "250000",
+  "images": [
+   "https://cdn.mendozaprop.com/mendozaprop/properties/uploader/1724453723.6546934.jpg",
+   "https://cdn.mendozaprop.com/mendozaprop/properties/uploader/1724453724.041831.jpg"
+  ],
+  "description": "Venta. Casa en Quinta Sección.\n\nLa casa se encuentra ubicada en calle Olascoaga 1257 de la Quinta Sección de Capital, entre calles Agustín Álvarez y Nicolás Avellaneda.\n\nLa propiedad está desarrollada",
+  "m2": 389,
+  "m2_unit": "m2",
+  "m2_covered": 431,
+  "bathrooms": 6,
+  "bedrooms": 5,
+  "address": "Olascoaga 1257, M5502 Mendoza, Argentina",
+  "parking": 2,
+  "credit": 0,
+  "regions": [
+   "mendoza"
+  ],
+  "active": 1,
+  "rooms": null,
+  "owner_logo": "https://cdn.mendozaprop.com/mendozaprop/clients/7/6/0000005140-311024023113-672424.png",
+  "owner_company": "BANCO INMOBILIARIO"
+ }
+]

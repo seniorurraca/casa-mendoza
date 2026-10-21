@@ -64,6 +64,18 @@
       "quick": {
         "maxPages": 2
       }
+    },
+    "mendozaprop": {
+      "groups": {
+        "3,11": "casa",
+        "17,38": "terreno"
+      },
+      "delayMs": 3000,
+      "maxPages": 40,
+      "retry": {
+        "retries": 2,
+        "backoffMs": 60000
+      }
     }
   },
   "features": {

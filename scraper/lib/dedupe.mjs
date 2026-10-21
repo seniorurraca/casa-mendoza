@@ -7,12 +7,19 @@ const MAX_DISTANCE_KM = 0.2;
 const close = (a, b, tolerance) => Math.abs(a - b) <= tolerance * Math.max(a, b);
 const areaOf = l => (l.type === "casa" ? l.supC : l.supT);
 
+const bothLocated = (a, b) => hasCoords(a) && hasCoords(b);
+
+const samePlace = (a, b) => (bothLocated(a, b) ? haversineKm(a, b) <= MAX_DISTANCE_KM : Boolean(a.department) && a.department === b.department);
+
+const similarArea = (a, b) =>
+  !areaOf(a) || !areaOf(b) ? bothLocated(a, b) : close(areaOf(a), areaOf(b), AREA_TOLERANCE);
+
 export const isSameProperty = (a, b) =>
   a.source !== b.source &&
   a.type === b.type &&
   close(a.usd, b.usd, PRICE_TOLERANCE) &&
-  hasCoords(a) && hasCoords(b) && haversineKm(a, b) <= MAX_DISTANCE_KM &&
-  (!areaOf(a) || !areaOf(b) || close(areaOf(a), areaOf(b), AREA_TOLERANCE));
+  samePlace(a, b) &&
+  similarArea(a, b);
 
 const richness = l => (l.photos?.length ?? 0) * 1000 + (l.description?.length ?? 0);
 

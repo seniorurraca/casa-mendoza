@@ -27,6 +27,10 @@ test("different price, place, size or same portal are kept apart", () => {
   for (const other of cases) assert.equal(dedupe([listing(), listing(other)]).length, 2, other.id);
 });
 
-test("listings without coordinates are never merged", () => {
-  assert.equal(dedupe([listing({ lat: null }), listing({ id: "b", source: "inmoup", lat: null })]).length, 2);
+test("without coordinates, same department and known similar size are required", () => {
+  const noCoords = { id: "m", source: "mendozaprop", url: "https://m", lat: null, lng: null, department: "Godoy Cruz" };
+  const base = listing({ department: "Godoy Cruz" });
+  assert.equal(dedupe([base, listing(noCoords)]).length, 1);
+  assert.equal(dedupe([base, listing({ ...noCoords, department: "Maipu" })]).length, 2);
+  assert.equal(dedupe([base, listing({ ...noCoords, supC: null })]).length, 2);
 });

@@ -10,7 +10,7 @@ Detalle técnico de cada portal. Las reglas de scraping (no correr desde la PC d
 | MercadoLibre | web 200, API pública 403 → solo con app oficial de ML Developers (la tiene que crear el usuario) | — | — |
 | Argenprop | candidato: **200 sin desafío** el 2026-10-20 (antes 403). `robots.txt` permite solo `?pagina-1..3` por búsqueda → habría que cubrir el inventario con muchas búsquedas acotadas (departamento × rango de precio). 20–54 avisos por página, HTML server-side (`listing__item`) | — | — |
 | Inmuebles Clarín | mismo grupo y mismo `robots.txt` que Argenprop → mismo inventario, no suma | — | — |
-| MendozaProp (`mendozaprop.com`) | candidato: "portal inmobiliario de la Provincia de Mendoza", Next.js con `__NEXT_DATA__`, filtros `/propiedades?region=…&operationType=…&propertyType=…`, avisos `/{slug}/{id}`. Falta relevar paginación y campos | — | — |
+| MendozaProp | ✅ en uso (desde 2026-10-20) | solo full | `scraper/sources/mendozaprop.mjs` |
 | Liderprop (`liderprop.com/es-ar/`) | por relevar: plataforma "creada por y para profesionales", HTML server-side | — | — |
 | Zonaprop | ❌ 403 anti-bot (Cloudflare/DataDome) | — | No evadir |
 | Properati | ❌ 401 (2026-10-20) | — | No evadir |
@@ -79,9 +79,18 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 - Fotos: `photos[].rawValue` = `listings/{entity}/{foto}` → `https://d1acdg20u0pmxj.cloudfront.net/listings/{entity}/860x440/{foto}.jpg`.
 - **El listado no trae descripción, fecha ni apto crédito.** Están en el detalle (`/listings/{slug}`, entrada `findBySlug`: `description`, `aptCredit`, `features[]` con "Patio", `parkingSpaces`). No se piden (serían ~2.700 requests por corrida). Por ahora: descripción = título, patio por m², crédito por regex del título. Mejora posible: pedir el detalle solo de avisos nuevos.
 
+## MendozaProp (`mendozaprop.com`) — Next.js, datos por API JSON propia
+
+- Sin `robots.txt` (404). El HTML no trae avisos: la página los pide a `/api/properties?limit=&offset=&isMap=false&operationType=&propertyType=` (GET simple, sin auth ni chequeo de Origin; funciona con curl). Usamos `limit=100`.
+- `operationType`: 1 = alquiler, 2 = venta. `propertyType` acepta lista: casa 3 (+11 dúplex, 4 casa quinta no), terreno 17 (Lote) y 38 (Terreno), departamento 8, galpón 14, bodega 1109. Config: `groups: { "3,11": "casa", "17,38": "terreno" }`.
+- La API devuelve un **array sin total**: se pagina con `offset` hasta que vuelve menos de `limit`.
+- Campos: `id` (URL `/venta-{tipo}/{id}`, el slug no importa), `price` (string) + `currency_id` (1 USD, 2 ARS), `m2` (total), `m2_covered`, `bedrooms`, `bathrooms`, `parking`, `credit` (1 = apto; 0 no es confiable → null), `regions[0]` (slug: mendoza=Capital, godoycruz, guaymallen, lasheras, lujandecuyo, maipu), `address`, `images[]`, `description`, `owner_company`, `active`.
+- **No trae coordenadas** → `minutes` null y el dedupe compara departamento en vez de distancia.
+- No ordena por fecha conocida → sin quick.
+
 ## Dedupe entre portales
 
-Las inmobiliarias publican lo mismo en ambos portales (~1.580 duplicados por corrida). Criterio en `scraper/lib/dedupe.mjs`: distinto `source`, mismo `type`, precio ±2%, distancia < 200 m, superficie ±10%. Sin coordenadas no se une. El resultado conserva el aviso más completo y guarda los demás en `alsoOn[{source,url}]`; la UI los muestra como "Inmoup · Inmoclick" y el filtro de Portales los considera.
+Las inmobiliarias publican lo mismo en ambos portales (~1.580 duplicados por corrida). Criterio en `scraper/lib/dedupe.mjs`: distinto `source`, mismo `type`, precio ±2%, distancia < 200 m, superficie ±10%. Si a alguno le faltan coordenadas (MendozaProp siempre): mismo departamento y superficie ±10% obligatoria (sin superficie no se une). El resultado conserva el aviso más completo y guarda los demás en `alsoOn[{source,url}]`; la UI los muestra como "Inmoup · Inmoclick" y el filtro de Portales los considera.
 
 ## Evasión de anti-bot: no
 

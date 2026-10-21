@@ -4,6 +4,7 @@ import { parseArgs } from "node:util";
 import * as inmoclick from "./sources/inmoclick.mjs";
 import * as inmoup from "./sources/inmoup.mjs";
 import * as remax from "./sources/remax.mjs";
+import * as mendozaprop from "./sources/mendozaprop.mjs";
 import { getUsdRate } from "./lib/currency.mjs";
 import { enrich } from "./lib/enrich.mjs";
 import { AREA_RULES, OFFER_RULES, partition } from "./lib/filters.mjs";
@@ -15,7 +16,7 @@ import { appendRun, runUrl } from "./lib/runs.mjs";
 import { dedupe } from "./lib/dedupe.mjs";
 import { sourcesFor } from "./lib/sources.mjs";
 
-const SOURCES = { inmoclick, inmoup, remax };
+const SOURCES = { inmoclick, inmoup, remax, mendozaprop };
 
 const PUBLIC_FIELDS = ["id", "source", "type", "url", "photo", "photosApi", "photoCount", "usd", "priceRaw", "supT", "supC", "dorm", "banos",
   "lat", "lng", "department", "address", "locationText", "publishedAt", "agency", "features", "minutes", "ppm", "alsoOn"];
