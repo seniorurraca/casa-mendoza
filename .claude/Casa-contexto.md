@@ -65,7 +65,9 @@ scraper/lib/
   currency.mjs  dólar oficial (dolarapi.com), parsePrice (US$ vs $ ARS)
   text.mjs      normalize (reusa docs/js/text.js), decodeEntities, detectFeatures
   geo.mjs       re-exporta haversine/hasCoords de docs/js/geo.js; minutos = km línea recta × minutesPerKm (1,8)
-  enrich.mjs    features (credito/patio/cochera/posesion/reciclar), minutes, ppm
+  enrich.mjs    ubicación (departments), features (credito/patio/cochera/posesion/reciclar), minutes, ppm
+  departments.mjs departmentAt (punto en polígono IGN) + isPlaceholder (pines por defecto de los portales)
+scraper/data/departamentos-mendoza.json  polígonos de los 18 departamentos (IGN, simplificados ~10 m)
   filters.mjs   AREA_RULES (sin precio, fuera de Gran Mendoza, lejos) / OFFER_RULES (precio alto, terreno caro/chico)
   dedupe.mjs    mismo inmueble en varios portales → uno + alsoOn
   market.mjs    medianas USD/m² por tipo × departamento
@@ -101,6 +103,7 @@ worker/src/
 
 1. Dólar oficial venta.
 2. `sourcesFor(config.sources, mode, segment)` (grupos de `sources.{name}.segments[segment]`) → `fetchAll({..., operation})` → `enrich({...l, operation})`.
+   - Ubicación (desde 2026-10-20): si las coordenadas son un pin por defecto (`config.placeholderCoords`, radio 100 m) → `lat/lng = null` (sin minutos, se queda el departamento del portal). Si no, el **departamento sale de las coordenadas** (punto en polígono IGN), no del texto del portal: antes una casa en Godoy Cruz sobre calle Maipú quedaba como "Maipú". Fuera de todos los polígonos → se queda el del portal. Con los datos del 2026-10-20: ~100 avisos cambian de departamento y 34 tenían pin falso.
 3. `AREA_RULES`.
 4. quick (siempre venta): `upsert(previous.hydrated, nuevos)`. full: `replaceSegment(previous.hydrated, nuevos, segment)` → solo reemplaza los avisos de ese segmento (`segmentOf`: alquiler → "alquiler"; departamento en venta → "deptos"; resto → "venta").
 5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10% (sin coordenadas: mismo departamento y superficie obligatoria). Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
@@ -163,6 +166,8 @@ worker/src/
 
 - `maxUsdStored` (150000): tope de lo que se guarda (y filtro de URL de Inmoup).
 - `maxMinutes`, `minutesPerKm`, `centro`, `departments`, `terreno.{maxUsd,minM2}`.
+- `placeholderCoords[]`: pines por defecto que usan los portales cuando el aviso no tiene ubicación (`-32.87505,-68.83456` de Inmoup/Inmoclick, compartido por ~30 avisos de distintos departamentos; el centro de la Ciudad). Si aparece otro: coordenada idéntica repetida en avisos de departamentos distintos.
+- Polígonos de departamentos: WFS del IGN (`https://wms.ign.gob.ar/geoserver/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=ign:departamento&outputFormat=application/json&CQL_FILTER=in1+like+%2750%25%27`), simplificados con Douglas-Peucker a 0,0001° y nombres sin acentos. Validados contra OpenStreetMap. Ojo: Inmoup redondea a 3 decimales (~100 m) muchas coordenadas → en el borde entre departamentos puede errar.
 - `sources.{name}`: `segments.{venta|deptos|alquiler}` (grupo → tipo; la clave del grupo arma la URL), `delayMs` (3000), `maxPages`, `retry {retries, backoffMs}`, `quick {…}` (Inmoclick), `maxUsd` (Inmoup).
 - `features`: regex sobre texto normalizado (minúsculas, sin acentos).
 - `dangerZones[]`: `{name, pattern (regex), level: high|medium}`.

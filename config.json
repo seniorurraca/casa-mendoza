@@ -6,6 +6,10 @@
     "lat": -32.8895,
     "lng": -68.8458
   },
+  "placeholderCoords": [
+    { "lat": -32.87505096302248, "lng": -68.83456419 },
+    { "lat": -32.8894587, "lng": -68.8458386 }
+  ],
   "maxMinutes": 30,
   "minutesPerKm": 1.8,
   "departments": [

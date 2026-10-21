@@ -48,8 +48,8 @@ test("area rules discard far, priceless and out-of-area listings", () => {
   assert.equal(reason({ lat: -33.2, lng: -68.9 }), "lejos del centro");
   assert.equal(reason({ locationText: "barrio lihue" }), null);
   assert.equal(reason({ usd: null }), "sin precio");
-  assert.equal(reason({ department: "San Rafael" }), "fuera de Gran Mendoza");
-  assert.equal(reason({ department: "Guaymallén" }), null);
+  assert.equal(reason({ department: "San Rafael", lat: null, lng: null }), "fuera de Gran Mendoza");
+  assert.equal(reason({ department: "Guaymallén", lat: null, lng: null }), null);
 });
 
 test("offer rules keep only cheap, big-enough terrenos", () => {
@@ -61,7 +61,7 @@ test("offer rules keep only cheap, big-enough terrenos", () => {
 
 test("market median by department with fallback to overall", () => {
   const listings = [400, 500, 600, 700, 800].map((ppm, i) => build({ id: `g${i}`, usd: ppm * 100 }))
-    .concat(build({ id: "m1", department: "Maipu", usd: 90000 }));
+    .concat(build({ id: "m1", department: "Maipu", lat: -32.98, lng: -68.79, usd: 90000 }));
   const market = buildMarket(listings, config.segment, ["casa", "terreno"]);
   assert.equal(zoneMedian(market, listings[0], 5), 600);
   assert.equal(zoneMedian(market, listings.at(-1), 5), 650);

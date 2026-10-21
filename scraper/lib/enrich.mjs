@@ -1,13 +1,20 @@
 import { detectFeatures } from "./text.mjs";
 import { estimateMinutes } from "./geo.mjs";
 import { usefulArea } from "./area.mjs";
+import { departmentAt, isPlaceholder } from "./departments.mjs";
 
 export const pricePerM2 = listing => {
   const m2 = usefulArea(listing);
   return listing.usd && m2 > 0 ? Math.round(listing.usd / m2) : null;
 };
 
-export function enrich(listing, config) {
+function locate(listing, config) {
+  if (isPlaceholder(listing, config.placeholderCoords)) return { ...listing, lat: null, lng: null };
+  return { ...listing, department: departmentAt(listing) ?? listing.department };
+}
+
+export function enrich(scraped, config) {
+  const listing = locate(scraped, config);
   const found = detectFeatures(listing.text, config.features);
   return {
     ...listing,
