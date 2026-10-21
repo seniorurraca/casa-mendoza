@@ -38,7 +38,7 @@ GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare 
 | Modo | Cron UTC | Hora ART | Qué hace | Duración |
 |---|---|---|---|---|
 | `full` | `0 9 * * *` | 06:00 | Todos los portales. Recalcula medianas. Elimina avisos dados de baja | ~35–40 min |
-| `quick` | `0 1,5,13,17,21 * * *` | 22, 02, 10, 14, 18 | Solo fuentes con `quick` en config (Inmoclick, "recientes", 3 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
+| `quick` | `0 1,5,13,17,21 * * *` | 22, 02, 10, 14, 18 | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo; RE/MAX 2 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
 
 - GitHub retrasa los cron ~20–30 min. Es normal.
 - Corre `npm test` antes de scrapear, y hace `git pull --rebase` antes de pushear los datos.
@@ -52,9 +52,10 @@ scraper/index.mjs              orquestador: --mode full|quick, --max-pages N
 scraper/log-failure.mjs        registra una corrida fallida en runs.json (lo llama el workflow)
 scraper/sources/inmoclick.mjs  fuente Inmoclick      (detalles en Casa-fuentes.md)
 scraper/sources/inmoup.mjs     fuente Inmoup
+scraper/sources/remax.mjs      fuente RE/MAX
 scraper/lib/
   http.mjs      fetch con User-Agent; status != 200 = error; withRetry (backoff)
-  sources.mjs   fetchGroups (grupos + dedupe por id), sourcesFor(config.sources, mode)
+  sources.mjs   fetchGroups (grupos + dedupe por id), fetchPaginated (páginas con total + reintento; Inmoup y RE/MAX), sourcesFor(config.sources, mode)
   currency.mjs  dólar oficial (dolarapi.com), parsePrice (US$ vs $ ARS)
   text.mjs      normalize (reusa docs/js/text.js), decodeEntities, detectFeatures
   geo.mjs       re-exporta haversine/hasCoords de docs/js/geo.js; minutos = km línea recta × minutesPerKm (1,8)

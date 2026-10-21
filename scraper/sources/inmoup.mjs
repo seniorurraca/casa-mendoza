@@ -1,5 +1,4 @@
-import { fetchText, sleep, withRetry } from "../lib/http.mjs";
-import { fetchGroups } from "../lib/sources.mjs";
+import { fetchGroups, fetchPaginated } from "../lib/sources.mjs";
 import { normalize } from "../lib/text.mjs";
 
 const BASE_URL = "https://inmoup.com.ar";
@@ -88,25 +87,12 @@ export function parsePage(html, type, usdRate) {
   return { total, listings: items.map(item => toListing(item, type, usdRate, descriptions)) };
 }
 
-async function fetchPage(group, page, type, { usdRate, retry, maxUsd }) {
-  const url = pageUrl(group, page, maxUsd);
-  return withRetry(async () => {
-    const parsed = parsePage(await fetchText(url), type, usdRate);
-    if (!parsed.listings.length) throw new Error(`página sin avisos ${url}`);
-    return parsed;
-  }, retry);
-}
-
-async function fetchGroup(group, type, { delayMs, maxPages, ...options }) {
-  const first = await fetchPage(group, 1, type, options);
-  const pages = Math.min(Math.ceil(first.total / first.listings.length), maxPages);
-  const listings = [...first.listings];
-  for (let page = 2; page <= pages; page++) {
-    await sleep(delayMs);
-    listings.push(...(await fetchPage(group, page, type, options)).listings);
-    console.log(`inmoup ${group} ${page}/${pages}`);
-  }
-  return listings;
-}
+const fetchGroup = (group, type, { usdRate, maxUsd, ...options }) => fetchPaginated({
+  ...options,
+  label: `inmoup ${group}`,
+  firstPage: 1,
+  urlFor: page => pageUrl(group, page, maxUsd),
+  parse: html => parsePage(html, type, usdRate),
+});
 
 export const fetchAll = ({ groups, ...options }) => fetchGroups(groups, fetchGroup, options);

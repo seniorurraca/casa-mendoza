@@ -3,7 +3,7 @@ import { mapsUrl } from "./maps.js";
 import { ICONS } from "./icons.js";
 
 export const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
-export const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup" };
+export const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup", remax: "RE/MAX" };
 
 const sourceLink = (source, url) =>
   `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${SOURCE_LABEL[source] ?? escapeHtml(source)}</a>`;
