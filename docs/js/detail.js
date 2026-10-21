@@ -1,7 +1,7 @@
 import { escapeHtml, formatUsd } from "./format.js";
 import { hasCoords } from "./geo.js";
 import { closeButton } from "./icons.js";
-import { avisoLink, breakdownList, chips, discountPill, discountText, factList, favButton, mapsLink, newTag, scorePill, sources, title } from "./listing-view.js";
+import { avisoLink, breakdownList, chips, discountPill, discountText, factList, favButton, formatPrice, isRent, mapsLink, newTag, scorePill, sources, title } from "./listing-view.js";
 
 const IGNORE_RADII_M = [200, 500];
 
@@ -16,9 +16,9 @@ const formatDate = iso => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString(
 
 function specs(l) {
   const rows = [
-    ["Precio", formatUsd(l.usd)],
-    ["USD por m²", l.ppm && formatUsd(l.ppm)],
-    ["Mediana de la zona", l.zonePpm && `${formatUsd(l.zonePpm)}/m² (${discountText(l)})`],
+    ["Operación", isRent(l) ? "Alquiler" : "Venta"],
+    ["USD por m²", !isRent(l) && l.ppm && formatUsd(l.ppm)],
+    ["Mediana de la zona", !isRent(l) && l.zonePpm && `${formatUsd(l.zonePpm)}/m² (${discountText(l)})`],
     ["Superficie cubierta", l.supC && `${l.supC} m²`],
     ["Terreno", l.supT && `${l.supT} m²`],
     ["Dormitorios", l.dorm],
@@ -27,7 +27,7 @@ function specs(l) {
     ["Departamento", l.department],
     ["Publicado", formatDate(l.publishedAt)],
     ["Visto por primera vez", formatDate(l.firstSeen)],
-    ["Precio anterior", l.prevUsd && formatUsd(l.prevUsd)],
+    ["Precio anterior", !isRent(l) && l.prevUsd && formatUsd(l.prevUsd)],
     ["Inmobiliaria", l.agency],
   ];
   return rows.filter(([, value]) => value).map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join("") +
@@ -50,7 +50,7 @@ export const renderDetail = (l, isFavorite) => `
     </button>
     <div class="thumbs"></div>
   </div>
-  <div class="detail-price"><strong>${formatUsd(l.usd)}</strong>${discountPill(l)}${scorePill(l)}</div>
+  <div class="detail-price"><strong>${formatPrice(l)}</strong>${discountPill(l)}${scorePill(l)}</div>
   ${factList(l)}
   <div class="chips">${chips(l)}</div>
   <dl class="specs">${specs(l)}</dl>

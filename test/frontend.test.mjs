@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mapsUrl } from "../docs/js/maps.js";
 import { isFresh, tokenClaims } from "../docs/js/google-token.js";
-import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings } from "../docs/js/filters.js";
+import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings, monthlyArs } from "../docs/js/filters.js";
 
 const listing = (overrides = {}) => ({
   id: "a", type: "casa", usd: 50000, department: "Godoy Cruz", address: "Calle 1", minutes: 12,
@@ -56,4 +56,22 @@ test("google token claims are read and expiry is checked with a margin", () => {
 test("more-filters badge counts only the filters inside the panel", () => {
   assert.equal(advancedCount(DEFAULT_FILTERS), 0);
   assert.equal(advancedCount({ ...DEFAULT_FILTERS, minUsd: 20000, departments: ["Maipu"], maxMinutes: 20, onlyCredito: true, onlyPatio: true, hideSuspicious: true }), 4);
+});
+
+test("buy shows houses and land by default, apartments only when picked", () => {
+  const items = [listing({ id: "c" }), listing({ id: "t", type: "terreno" }), listing({ id: "d", type: "departamento", operation: "venta" })];
+  assert.deepEqual(applyFilters(items, DEFAULT_FILTERS).map(l => l.id).sort(), ["c", "t"]);
+  assert.deepEqual(applyFilters(items, { ...DEFAULT_FILTERS, types: ["departamento"] }).map(l => l.id), ["d"]);
+});
+
+test("rent filters by monthly pesos and ignores the credit toggle", () => {
+  const rent = overrides => listing({ operation: "alquiler", type: "departamento", ...overrides });
+  const items = [rent({ id: "barato", ars: 450000 }), rent({ id: "caro", ars: 1200000 }), listing({ id: "venta" })];
+  const filters = { ...DEFAULT_FILTERS, operation: "alquiler", onlyCredito: true };
+  assert.deepEqual(applyFilters(items, filters).map(l => l.id), ["barato"]);
+  assert.equal(DEFAULT_FILTERS.maxArs, 1000000);
+});
+
+test("monthly rent in pesos is rounded to thousands", () => {
+  assert.equal(monthlyArs(291, 1545), 450000);
 });

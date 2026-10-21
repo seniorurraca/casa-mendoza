@@ -6,6 +6,7 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 
 - Crédito hipotecario preaprobado: **USD 62.000**. Los bancos financian 70–80% del valor, así que el tope real depende de ahorros. El precio máximo es un **filtro editable en la UI** (default 62k), nunca un valor fijo en código.
 - Prioridades: **apto crédito hipotecario** y **patio**. Fuera lo que esté a **más de 30 min del centro** (Plaza Independencia) y los **barrios peligrosos**.
+- También **departamentos** (venta, filtrables, no incluidos por defecto) y **alquileres** (casas y deptos, precio en $/mes, tope default $1.000.000 editable).
 - **Terrenos solo si son baratos** (≤ USD 25k y ≥ 200 m²). Construir 70 m² ≈ USD 62k (CAMZA 2026): terreno + obra no entra en el crédito sin financiamiento extra (IPV "Construyo mi casa").
 - Investigación de mercado (medianas USD/m² por zona, tiempos al centro, seguridad, fuentes): `research/mercado-mendoza-2026-10.md`.
 
@@ -37,9 +38,13 @@ GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare 
 
 | Modo | Cron UTC | Hora ART | Qué hace | Duración |
 |---|---|---|---|---|
-| `full` | `0 9 * * *` | 06:00 | Todos los portales. Recalcula medianas. Elimina avisos dados de baja | ~35–40 min |
+| `full --segment venta` | `0 9 * * *` | 06:00 | Casas y terrenos en venta, todos los portales. Recalcula medianas de su segmento. Elimina bajas **de su segmento** | ~45–50 min |
+| `full --segment deptos` | `0 11 * * *` | 08:00 | Departamentos en venta (Inmoup, RE/MAX, MendozaProp) | ~10 min |
+| `full --segment alquiler` | `0 12 * * *` | 09:00 | Casas y deptos en alquiler (Inmoup, RE/MAX, MendozaProp) | ~10 min |
 | `quick` | `0 1,5,13,17,21 * * *` | 22, 02, 10, 14, 18 | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo; RE/MAX 2 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
 
+- **Por qué 3 corridas full y no 1 larga** (estudio 2026-10-20): cada job corre en una VM nueva de GitHub (IP distinta), con ráfagas cortas separadas 1–2 h; si una falla, las otras no se pierden. Partir más la venta no baja los pedidos diarios por portal, solo los reparte.
+- Inmoclick solo está en el segmento venta: sus URLs de alquiler/deptos no se pudieron verificar (IP de la casa bloqueada).
 - GitHub retrasa los cron ~20–30 min. Es normal.
 - Corre `npm test` antes de scrapear, y hace `git pull --rebase` antes de pushear los datos.
 - Si el scraper falla, aborta **sin pisar** los JSON: el sitio sigue con los datos anteriores.
@@ -95,11 +100,11 @@ worker/src/
 ## Pipeline del scraper
 
 1. Dólar oficial venta.
-2. `sourcesFor(config.sources, mode)` → `fetchAll()` de cada fuente → `enrich()`.
+2. `sourcesFor(config.sources, mode, segment)` (grupos de `sources.{name}.segments[segment]`) → `fetchAll({..., operation})` → `enrich({...l, operation})`.
 3. `AREA_RULES`.
-4. quick: `upsert(previous.hydrated, nuevos)`. full: solo lo scrapeado.
+4. quick (siempre venta): `upsert(previous.hydrated, nuevos)`. full: `replaceSegment(previous.hydrated, nuevos, segment)` → solo reemplaza los avisos de ese segmento (`segmentOf`: alquiler → "alquiler"; departamento en venta → "deptos"; resto → "venta").
 5. `dedupe()`: distinto portal, mismo tipo, precio ±2%, < 200 m, superficie ±10% (sin coordenadas: mismo departamento y superficie obligatoria). Gana el más completo (más fotos + descripción); los demás → `alsoOn` (se conserva entre corridas).
-6. `buildMarket()` (solo full): mediana USD/m² por tipo × departamento. Segmento casas USD 15–90k, terrenos 3–90k; fallback a la mediana general si n < 5. **Antes** de `OFFER_RULES` para no sesgar terrenos.
+6. `buildMarket(unique, config.segment, MARKET_KEYS[segment])` (solo full; las demás claves se conservan): mediana USD/m² por clave × departamento. Claves (`marketKey`): `casa`, `terreno`, `departamento`, `alquiler-casa`, `alquiler-departamento` (alquiler en USD/m²/mes). m² útil (`usefulArea`): casa = cubierta, terreno = total, depto = cubierta o total. Segmento casas USD 15–90k, terrenos 3–90k; fallback a la mediana general si n < 5. **Antes** de `OFFER_RULES` para no sesgar terrenos.
 7. `OFFER_RULES` (> USD 150k; terreno > 25k o < 200 m²).
 8. `registerSeen()` + `scoreListing()` + `withHistory()` → `listings.json` + `details.json` + `seen.json`; se agrega la corrida a `runs.json`.
    - `seen.json` = `{ id: firstSeenAt }` de **todo** lo scrapeado (también descartados y perdedores del dedupe), nunca se borra. `firstSeenAt` sale de ahí: un aviso que falta en una corrida y vuelve, que cambia de ganador en el dedupe o que baja de precio y entra **no** es nuevo. Antes de esto (hasta 2026-10-20) eso generaba falsos NUEVO.
@@ -116,6 +121,8 @@ worker/src/
 | Cochera | 5 | atributo o regex |
 
 - Terrenos: solo precio + cercanía, normalizado a 100.
+- Departamentos: como casas, pero el patio solo cuenta si el texto lo menciona (no por m² libres).
+- Alquileres: sin factor "Apto crédito".
 - Penalidades: posesión/boleto/sin escritura −30, a reciclar −10, zona "Advertir" −15 (la aplica el **frontend**).
 - `suspicious` si el descuento es > 55%.
 
@@ -123,7 +130,7 @@ worker/src/
 
 - `listings.json`:
   - Raíz: `generatedAt`, `startedAt`, `lastFullAt`, `usdRate`, `stats`, `dangerZones`, `zonePenalty`, `market`, `listings[]`.
-  - Cada listing: `id` (`{source}-{usr}-{prp}`), `source`, `type` (casa|terreno), `url`, `photo`, `photosApi`, `photoCount`, `usd`, `priceRaw`, `supT`, `supC`, `dorm`, `banos`, `lat`, `lng`, `department`, `address`, `locationText` (normalizado, para barrios), `publishedAt`, `agency`, `features{credito,patio,cochera,posesion,reciclar}`, `minutes`, `ppm`, `alsoOn[]`, `score`, `discount`, `zonePpm`, `breakdown[]`, `suspicious`, `firstSeen` (fecha), `firstSeenAt` (ISO; null en avisos anteriores al 2026-10-19), `prevUsd`.
+  - Cada listing: `id` (`{source}-{usr}-{prp}`), `source`, `type` (casa|terreno|departamento), `operation` (venta|alquiler; ausente = venta), `url`, `photo`, `photosApi`, `photoCount`, `usd`, `priceRaw`, `supT`, `supC`, `dorm`, `banos`, `lat`, `lng`, `department`, `address`, `locationText` (normalizado, para barrios), `publishedAt`, `agency`, `features{credito,patio,cochera,posesion,reciclar}`, `minutes`, `ppm`, `alsoOn[]`, `score`, `discount`, `zonePpm`, `breakdown[]`, `suspicious`, `firstSeen` (fecha), `firstSeenAt` (ISO; null en avisos anteriores al 2026-10-19), `prevUsd`.
 - `details.json`: `{ [id]: { description, photos[] } }`.
 - `seen.json`: `{ [id]: firstSeenAt }`. Solo lo usa el scraper.
 - `runs.json`: últimas 60 corridas, la más nueva primero: `mode`, `ok`, `startedAt` (null si falló), `finishedAt`, `scanned{fuente: n}`, `kept`, `new`, `error` (tail del log), `url` (run de Actions).
@@ -135,7 +142,8 @@ worker/src/
 - **Temas:** botón paleta en la barra: Automático (sigue al dispositivo), Claro, Oscuro, Lavanda, Durazno, Menta. **Por defecto: Claro** (pedido del usuario), aunque el dispositivo esté en oscuro. Se guarda en `casa-mendoza:theme`. El CSS define tokens por `:root[data-theme="…"]`; `js/theme-boot.js` (script clásico en el `<head>` de las 3 páginas) pone `data-theme` antes de pintar, para que no parpadee. `theme.js` = `THEMES`, `resolveTheme`, selector.
 - **📋 Registro solo para admin:** el botón se muestra solo si el mail logueado está en `ADMIN_EMAILS` (`account-config.js`). Es solo visual: `data/runs.json` es público igual.
 - **Tabs Todos / ♥ Favoritos:** Favoritos ignora todos los filtros (y las zonas "Ocultar"), ordena del último guardado al primero (`favoriteListings`) y cuenta los que ya no están publicados. En esa tab se oculta el formulario.
-- **Filtros:** precio mín/máx; Tipo (segmentado); Departamento / Portales (multi-selección, `[]` = todos; tocar una opción desde "Todos" elige solo esa, destildar la última vuelve a todos); minutos; apto crédito; patio; ocultar sospechosos. El `<select name="sort">` está fuera del form (`form="filters"`), por eso el listener de input es en `document` filtrando `target.form`. Orden: puntaje, precio, descuento vs zona, más nuevos.
+- **Comprar / Alquilar** (`filters.operation`): primer selector de la barra. Comprar usa `minUsd/maxUsd` y "Todo" = casas + terrenos; Alquilar usa `minArs/maxArs` (default máx. $1.000.000) y "Todo" = casas + deptos (oculta Terrenos y Apto crédito). Cambiar de operación resetea el tipo. El precio de alquiler se guarda en USD y el sitio lo pasa a $/mes con el dólar del día (`monthlyArs`, redondeo a miles) → `l.ars`.
+- **Filtros:** precio mín/máx; Tipo (segmentado: Todo / Casas / Deptos / Terrenos); Departamento / Portales (multi-selección, `[]` = todos; tocar una opción desde "Todos" elige solo esa, destildar la última vuelve a todos); minutos; apto crédito; patio; ocultar sospechosos. El `<select name="sort">` está fuera del form (`form="filters"`), por eso el listener de input es en `document` filtrando `target.form`. Orden: puntaje, precio, descuento vs zona, más nuevos.
 - **⚙ Configuración — barrios peligrosos:** la base viene de `config.dangerZones` y el usuario la edita (activar/desactivar, agregar). "Ocultar" (high) saca el aviso; "Advertir" (medium) muestra un chip y resta 15. Matchea contra `locationText` (dirección + slug). Ojo con nombres que también son calles.
 - **Ocultar por ubicación:** en el detalle de un aviso con coordenadas, "Ocultar 200 / 500 m alrededor" (`areaZone`) → zona `high` por radio (haversine), sin saber el nombre del barrio. Pide confirmación con la cantidad de avisos. Se guarda en `prefs.areas` (`casa-mendoza:zones`) y se quita en ⚙ Configuración → "Ocultos por ubicación".
 - **Detalle** en diálogo: galería, datos, descripción, links a todos los portales, Google Maps (`/maps/search/?api=1&query=lat,lng`, o la dirección si no hay coordenadas).
@@ -156,10 +164,10 @@ worker/src/
 
 - `maxUsdStored` (150000): tope de lo que se guarda (y filtro de URL de Inmoup).
 - `maxMinutes`, `minutesPerKm`, `centro`, `departments`, `terreno.{maxUsd,minM2}`.
-- `sources.{name}`: `groups`, `delayMs` (3000), `maxPages`, `retry {retries, backoffMs}`, `quick {…}` (Inmoclick), `maxUsd` (Inmoup).
+- `sources.{name}`: `segments.{venta|deptos|alquiler}` (grupo → tipo; la clave del grupo arma la URL), `delayMs` (3000), `maxPages`, `retry {retries, backoffMs}`, `quick {…}` (Inmoclick), `maxUsd` (Inmoup).
 - `features`: regex sobre texto normalizado (minúsculas, sin acentos).
 - `dangerZones[]`: `{name, pattern (regex), level: high|medium}`.
-- `segment`, `scoring`.
+- `segment` (rangos de mercado por clave), `scoring`.
 
 ## Qué hago yo vs. el usuario
 
@@ -215,10 +223,6 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 
 ## Ideas pendientes
 
-- **Próximo (decidido por el usuario 2026-10-20, sin implementar):**
-  - **Departamentos:** nuevo tipo, filtrable pero no incluido por defecto en "Todo". Puntaje sin factor terreno; el patio sí puede aplicar.
-  - **Alquileres:** selector Comprar / Alquilar. Precio en ARS por mes; tope editable por el usuario, default **$1.000.000**. Sin apto crédito en el puntaje.
-  - **Volumen:** departamentos (y alquileres) se actualizan en las corridas completas. Estudiar si conviene 1 corrida larga o varias medianas (p. ej. 3) para bajar el riesgo de bloqueo.
 
 - Alertas (Telegram/email) para avisos con puntaje > 85 ("a futuro").
 - Mapa con todos los avisos (Leaflet + OSM).

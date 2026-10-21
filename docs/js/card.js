@@ -1,5 +1,5 @@
-import { escapeHtml, formatUsd } from "./format.js";
-import { avisoLink, chips, discountPill, factList, favButton, mapsLink, newTag, photoBadge, scorePill, sources, title } from "./listing-view.js";
+import { escapeHtml } from "./format.js";
+import { avisoLink, chips, discountPill, factList, favButton, formatPrice, mapsLink, newTag, photoBadge, scorePill, sources, title } from "./listing-view.js";
 
 export const renderCard = (l, isFavorite) => `
 <article class="card" data-id="${escapeHtml(l.id)}">
@@ -13,7 +13,7 @@ export const renderCard = (l, isFavorite) => `
     ${photoBadge(l)}
   </div>
   <div class="card-body" data-action="detail">
-    <div class="card-price"><strong>${formatUsd(l.usd)}</strong>${discountPill(l)}</div>
+    <div class="card-price"><strong>${formatPrice(l)}</strong>${discountPill(l)}</div>
     <h3 class="card-title">${title(l)}</h3>
     <p class="card-address">${escapeHtml(l.address)}</p>
     ${factList(l)}

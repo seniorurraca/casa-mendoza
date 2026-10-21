@@ -1,4 +1,4 @@
-import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings, loadFilters, sourcesOf } from "./filters.js";
+import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings, loadFilters, monthlyArs, operationOf, sourcesOf } from "./filters.js";
 import { createMultiSelect } from "./multiselect.js";
 import { renderCard } from "./card.js";
 import { renderDetail, renderThumbs } from "./detail.js";
@@ -63,8 +63,10 @@ function syncForm() {
     if (el.name === "typeChoice") el.checked = el.value === typeChoice(filters.types);
     if (!(el.name in filters) || Array.isArray(filters[el.name])) continue;
     if (el.type === "checkbox") el.checked = filters[el.name];
+    else if (el.type === "radio") el.checked = el.value === filters[el.name];
     else el.value = filters[el.name];
   }
+  form.dataset.operation = filters.operation;
   form.querySelector("#maxMinutes-out").textContent = `${filters.maxMinutes} min`;
   const advanced = advancedCount(filters);
   moreCount.textContent = advanced;
@@ -230,6 +232,7 @@ document.addEventListener("input", event => {
   const { name, form: owner, value } = event.target;
   if (owner !== form || !name) return;
   if (name === "typeChoice") return setFilters({ ...filters, types: value ? [value] : [] });
+  if (name === "operation") return setFilters({ ...filters, operation: value, types: [] });
   setFilters({ ...filters, [name]: fieldValue(event.target) });
 });
 
@@ -285,7 +288,12 @@ const runs = await fetchJson("data/runs.json").catch(() => []);
 createRunsDialog(document.querySelector("#runs"), runsButton, runs);
 
 data = await fetchJson("data/listings.json");
-rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({ ...l, baseScore: l.score, baseBreakdown: l.breakdown }));
+rawListings = markNew(data.listings, newSince(previousVisit)).map(l => ({
+  ...l,
+  ars: operationOf(l) === "alquiler" ? monthlyArs(l.usd, data.usdRate) : null,
+  baseScore: l.score,
+  baseBreakdown: l.breakdown,
+}));
 recomputeZones();
 
 const settings = createSettings(document.querySelector("#settings"), {

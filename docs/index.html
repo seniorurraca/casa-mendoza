@@ -28,24 +28,31 @@
 
   <main class="page">
     <section class="hero">
-      <h1>Casas y terrenos en el Gran Mendoza</h1>
+      <h1>Casas, deptos y terrenos en el Gran Mendoza</h1>
       <p id="summary" class="hero-meta">Cargando avisos…</p>
       <p id="new-banner" class="new-banner" hidden></p>
     </section>
 
     <form id="filters" class="toolbar">
+      <div class="segmented operation" role="radiogroup" aria-label="Operación">
+        <label><input type="radio" name="operation" value="venta"><span>Comprar</span></label>
+        <label><input type="radio" name="operation" value="alquiler"><span>Alquilar</span></label>
+      </div>
       <div class="segmented" role="radiogroup" aria-label="Tipo">
         <label><input type="radio" name="typeChoice" value=""><span>Todo</span></label>
         <label><input type="radio" name="typeChoice" value="casa"><span>Casas</span></label>
-        <label><input type="radio" name="typeChoice" value="terreno"><span>Terrenos</span></label>
+        <label><input type="radio" name="typeChoice" value="departamento"><span>Deptos</span></label>
+        <label data-op="venta"><input type="radio" name="typeChoice" value="terreno"><span>Terrenos</span></label>
       </div>
-      <label class="price-field"><span>Hasta USD</span><input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric" aria-label="Precio máximo en USD"></label>
+      <label class="price-field" data-op="venta"><span>Hasta USD</span><input type="number" name="maxUsd" min="0" step="1000" inputmode="numeric" aria-label="Precio máximo en USD"></label>
+      <label class="price-field" data-op="alquiler"><span>Hasta $/mes</span><input type="number" name="maxArs" min="0" step="50000" inputmode="numeric" aria-label="Alquiler máximo por mes en pesos"></label>
       <div class="field toolbar-select" id="departments-select"></div>
-      <label class="toggle-chip"><input type="checkbox" name="onlyCredito"><span>Apto crédito</span></label>
+      <label class="toggle-chip" data-op="venta"><input type="checkbox" name="onlyCredito"><span>Apto crédito</span></label>
       <details class="more-filters">
         <summary class="btn"><span data-icon="sliders"></span>Más filtros<span id="more-count" class="badge" hidden></span></summary>
         <div class="more-panel">
-          <label class="field">Precio mínimo (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
+          <label class="field" data-op="venta">Precio mínimo (USD)<input type="number" name="minUsd" min="0" step="1000" inputmode="numeric"></label>
+          <label class="field" data-op="alquiler">Alquiler mínimo ($/mes)<input type="number" name="minArs" min="0" step="50000" inputmode="numeric"></label>
           <div class="field" id="sources-select"></div>
           <label class="field">Máximo al centro <output id="maxMinutes-out"></output><input type="range" name="maxMinutes" min="5" max="30" step="1"></label>
           <label class="check-row"><input type="checkbox" name="onlyPatio"><span>Solo con patio</span></label>

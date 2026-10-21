@@ -136,6 +136,9 @@ input, select { font: inherit; color: var(--text); }
 .toggle-chip span:hover { border-color: var(--muted); }
 .toggle-chip input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); }
 .toggle-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+#filters[data-operation="venta"] [data-op="alquiler"], #filters[data-operation="alquiler"] [data-op="venta"] { display: none; }
+.segmented.operation input:checked + span { background: var(--accent); color: var(--on-accent); }
+.card-price small, .detail-price small { font-size: .6em; font-weight: 500; color: var(--muted); margin-left: 2px; }
 .toolbar-select .field-label { display: none; }
 .toolbar-select .multi summary { height: 42px; padding: 0 14px 0 16px; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 500; }
 .toolbar-select .multi-menu { right: auto; min-width: 240px; }

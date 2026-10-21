@@ -1,8 +1,12 @@
-import { escapeHtml, formatPercent, formatUsd } from "./format.js";
+import { escapeHtml, formatArs, formatPercent, formatUsd } from "./format.js";
 import { mapsUrl } from "./maps.js";
 import { ICONS } from "./icons.js";
 
-export const TYPE_LABEL = { casa: "Casa", terreno: "Terreno" };
+export const TYPE_LABEL = { casa: "Casa", terreno: "Terreno", departamento: "Departamento" };
+
+export const isRent = l => l.operation === "alquiler";
+
+export const formatPrice = l => (isRent(l) ? `${formatArs(l.ars)}<small>/mes</small>` : formatUsd(l.usd));
 export const SOURCE_LABEL = { inmoclick: "Inmoclick", inmoup: "Inmoup", remax: "RE/MAX", mendozaprop: "MendozaProp" };
 
 const sourceLink = (source, url) =>
@@ -18,9 +22,9 @@ export const discountText = l => (l.discount === null ? null : `${l.discount >= 
 
 export function chips(l) {
   const list = [
-    [l.features.credito, "good", "Apto crédito"],
-    [l.type === "casa" && l.features.patio, "good", "Patio"],
-    [l.type === "casa" && l.features.cochera, "info", "Cochera"],
+    [l.features.credito && !isRent(l), "good", "Apto crédito"],
+    [l.type !== "terreno" && l.features.patio, "good", "Patio"],
+    [l.type !== "terreno" && l.features.cochera, "info", "Cochera"],
     [l.prevUsd && l.usd < l.prevUsd, "good", `Bajó ${l.prevUsd ? formatPercent(1 - l.usd / l.prevUsd) : ""}`],
     [l.suspicious, "warn", "Precio sospechoso"],
     [l.zone?.level === "medium", "warn", `Zona a verificar: ${escapeHtml(l.zone?.name)}`],
@@ -32,7 +36,7 @@ export function chips(l) {
 export function factList(l) {
   const items = [
     [l.dorm, ICONS.bed, `${l.dorm} dorm.`],
-    [l.type === "casa" && l.supC, ICONS.area, `${l.supC} m² cub.`],
+    [l.type !== "terreno" && l.supC, ICONS.area, `${l.supC} m² cub.`],
     [l.supT, ICONS.land, `${l.supT} m² terreno`],
     [l.minutes !== null, ICONS.clock, `${l.minutes} min al centro`],
   ];

@@ -1,8 +1,11 @@
 import { seenAt } from "./visits.js";
 
 export const DEFAULT_FILTERS = {
+  operation: "venta",
   minUsd: 0,
   maxUsd: 62000,
+  minArs: 0,
+  maxArs: 1000000,
   types: [],
   departments: [],
   sources: [],
@@ -22,17 +25,28 @@ const SORTERS = {
 
 const allows = (selected, ...values) => !selected.length || values.some(v => selected.includes(v));
 
+const DEFAULT_TYPES = { venta: ["casa", "terreno"], alquiler: ["casa", "departamento"] };
+const RENT = "alquiler";
+
+export const operationOf = l => l.operation ?? "venta";
+
+export const monthlyArs = (usd, usdRate) => Math.round((usd * usdRate) / 1000) * 1000;
+
+const inPriceRange = (l, f) => (f.operation === RENT ? l.ars >= f.minArs && l.ars <= f.maxArs : l.usd >= f.minUsd && l.usd <= f.maxUsd);
+
+const allowsType = (l, f) => (f.types.length ? f.types : DEFAULT_TYPES[f.operation]).includes(l.type);
+
 export const sourcesOf = l => [l.source, ...(l.alsoOn ?? []).map(o => o.source)];
 
 const matches = (l, f) =>
   l.zone?.level !== "high" &&
-  l.usd >= f.minUsd &&
-  l.usd <= f.maxUsd &&
-  allows(f.types, l.type) &&
+  operationOf(l) === f.operation &&
+  inPriceRange(l, f) &&
+  allowsType(l, f) &&
   allows(f.departments, l.department) &&
   allows(f.sources, ...sourcesOf(l)) &&
   (l.minutes === null || l.minutes <= f.maxMinutes) &&
-  (!f.onlyCredito || l.features.credito) &&
+  (!f.onlyCredito || f.operation === RENT || l.features.credito) &&
   (!f.onlyPatio || l.features.patio) &&
   (!f.hideSuspicious || !l.suspicious);
 
@@ -50,7 +64,7 @@ export function loadFilters(saved) {
   return { ...DEFAULT_FILTERS, ...known };
 }
 
-const ADVANCED_FILTERS = ["minUsd", "sources", "maxMinutes", "onlyPatio", "hideSuspicious"];
+const ADVANCED_FILTERS = ["minUsd", "minArs", "sources", "maxMinutes", "onlyPatio", "hideSuspicious"];
 
 const isActive = (value, fallback) => (Array.isArray(value) ? value.length > 0 : value !== fallback);
 
