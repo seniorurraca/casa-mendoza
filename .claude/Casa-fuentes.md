@@ -8,7 +8,15 @@ Detalle técnico de cada portal. Las reglas de scraping (no correr desde la PC d
 | Inmoup | ✅ en uso | solo full | `scraper/sources/inmoup.mjs` |
 | RE/MAX | ✅ en uso (desde 2026-10-20) | full + quick | `scraper/sources/remax.mjs` |
 | MercadoLibre | web 200, API pública 403 → solo con app oficial de ML Developers (la tiene que crear el usuario) | — | — |
-| Zonaprop / Argenprop / Properati | ❌ 403 anti-bot (Cloudflare/DataDome) | — | No evadir |
+| Argenprop | candidato: **200 sin desafío** el 2026-10-20 (antes 403). `robots.txt` permite solo `?pagina-1..3` por búsqueda → habría que cubrir el inventario con muchas búsquedas acotadas (departamento × rango de precio). 20–54 avisos por página, HTML server-side (`listing__item`) | — | — |
+| Inmuebles Clarín | mismo grupo y mismo `robots.txt` que Argenprop → mismo inventario, no suma | — | — |
+| MendozaProp (`mendozaprop.com`) | candidato: "portal inmobiliario de la Provincia de Mendoza", Next.js con `__NEXT_DATA__`, filtros `/propiedades?region=…&operationType=…&propertyType=…`, avisos `/{slug}/{id}`. Falta relevar paginación y campos | — | — |
+| Liderprop (`liderprop.com/es-ar/`) | por relevar: plataforma "creada por y para profesionales", HTML server-side | — | — |
+| Zonaprop | ❌ 403 anti-bot (Cloudflare/DataDome) | — | No evadir |
+| Properati | ❌ 401 (2026-10-20) | — | No evadir |
+| BuscadorProp | no aplica: solo Zona Sur GBA y La Costa | — | — |
+| Buscaprop | el dominio no existe (`.com` ni `.com.ar`) | — | — |
+| Tokko Broker / Inmofactory | no son portales: CRMs para inmobiliarias. Su API exige la clave de una inmobiliaria cliente | — | — |
 
 Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, usdRate, ... })` → array de listings con la forma de `parseArticle` (Inmoclick) / `toListing` (Inmoup): `id`, `source`, `type`, `url`, `photo`, `photos?`, `photosApi`, `photoCount`, `priceRaw`, `usd`, `supT`, `supC`, `dorm`, `banos`, `cocheraAttr`, `lat`, `lng`, `department`, `address`, `locationText`, `description`, `text`, `publishedAt`, `agency`, `creditoFlag`. Registrar el módulo en `SOURCES` de `scraper/index.mjs` y sus opciones en `config.sources`.
 
@@ -74,6 +82,10 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 ## Dedupe entre portales
 
 Las inmobiliarias publican lo mismo en ambos portales (~1.580 duplicados por corrida). Criterio en `scraper/lib/dedupe.mjs`: distinto `source`, mismo `type`, precio ±2%, distancia < 200 m, superficie ±10%. Sin coordenadas no se une. El resultado conserva el aviso más completo y guarda los demás en `alsoOn[{source,url}]`; la UI los muestra como "Inmoup · Inmoclick" y el filtro de Portales los considera.
+
+## Evasión de anti-bot: no
+
+El usuario pidió (2026-10-20) saltear la protección de Zonaprop/Argenprop (sugirió técnicas tipo Scrapfly: navegadores headless con huella falsa, proxies residenciales, resolver desafíos). **No se hace**: va contra la regla del proyecto y los términos de esos sitios, y arriesga que bloqueen la IP de Actions o la del usuario. Se respeta `robots.txt`.
 
 ## Canales legítimos para portales bloqueados (propuestos, no implementados)
 
