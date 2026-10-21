@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { parsePage } from "../scraper/sources/inmoup.mjs";
+import { pageUrl, parsePage } from "../scraper/sources/inmoup.mjs";
 
 const html = readFileSync(new URL("./fixtures/inmoup-casas.html", import.meta.url), "utf8");
 const { total, listings } = parsePage(html, "casa", 1535);
@@ -34,4 +34,9 @@ test("resolves referenced descriptions from JSON-LD", () => {
 test("no cochera and no credito flags", () => {
   assert.equal(plain.cocheraAttr, false);
   assert.equal(plain.creditoFlag, false);
+});
+
+test("page urls carry the operation and the price cap only for sales", () => {
+  assert.equal(pageUrl("casas-en-venta", 2, 150000), "https://inmoup.com.ar/casas-en-venta-en-mendoza-y-150000-o-menos-dolares-y-pag-2");
+  assert.equal(pageUrl("departamentos-en-alquiler", 1, null), "https://inmoup.com.ar/departamentos-en-alquiler-en-mendoza");
 });

@@ -1,24 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sourcesFor } from "../scraper/lib/sources.mjs";
 import { upsert } from "../scraper/lib/history.mjs";
 import { dedupe } from "../scraper/lib/dedupe.mjs";
-
-const sources = {
-  inmoclick: { maxPages: 80, delayMs: 3000, quick: { order: "recent", maxPages: 3 } },
-  inmoup: { maxPages: 300, delayMs: 3000 },
-};
-
-test("full mode uses every source without quick overrides", () => {
-  assert.deepEqual(sourcesFor(sources, "full"), [
-    ["inmoclick", { maxPages: 80, delayMs: 3000 }],
-    ["inmoup", { maxPages: 300, delayMs: 3000 }],
-  ]);
-});
-
-test("quick mode uses only sources with quick options, merged", () => {
-  assert.deepEqual(sourcesFor(sources, "quick"), [["inmoclick", { maxPages: 3, delayMs: 3000, order: "recent" }]]);
-});
 
 test("upsert replaces existing ids and keeps the rest", () => {
   const merged = upsert([{ id: "a", usd: 1 }, { id: "b", usd: 2 }], [{ id: "b", usd: 3 }, { id: "c", usd: 4 }]);

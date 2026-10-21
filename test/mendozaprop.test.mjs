@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { apiUrl, toListing } from "../scraper/sources/mendozaprop.mjs";
 
 const items = JSON.parse(readFileSync(new URL("./fixtures/mendozaprop-casas.json", import.meta.url), "utf8"));
-const [godoyCruz, capital] = items.map(item => toListing(item, "casa", 1545));
+const [godoyCruz, capital] = items.map(item => toListing(item, "casa", "venta", 1545));
 
 test("maps structured fields", () => {
   assert.equal(godoyCruz.id, "mendozaprop-404952");
@@ -25,13 +25,14 @@ test("regions map to the same department names as the other portals", () => {
 
 test("credit is only trusted when the portal says yes", () => {
   assert.equal(godoyCruz.creditoFlag, null);
-  assert.equal(toListing({ ...items[0], credit: 1 }, "casa", 1545).creditoFlag, true);
+  assert.equal(toListing({ ...items[0], credit: 1 }, "casa", "venta", 1545).creditoFlag, true);
 });
 
 test("prices in pesos are converted", () => {
-  assert.equal(toListing({ ...items[0], currency_id: 2, price: "154500000" }, "casa", 1545).usd, 100000);
+  assert.equal(toListing({ ...items[0], currency_id: 2, price: "154500000" }, "casa", "venta", 1545).usd, 100000);
 });
 
 test("api url pages with offset", () => {
-  assert.equal(apiUrl("3,11", 2, 100), "https://www.mendozaprop.com/api/properties?limit=100&offset=200&isMap=false&operationType=2&propertyType=3,11");
+  assert.equal(apiUrl("3,11", 2, "venta"), "https://www.mendozaprop.com/api/properties?limit=100&offset=200&isMap=false&operationType=2&propertyType=3,11");
+  assert.equal(apiUrl("8", 0, "alquiler"), "https://www.mendozaprop.com/api/properties?limit=100&offset=0&isMap=false&operationType=1&propertyType=8");
 });

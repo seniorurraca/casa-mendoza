@@ -32,6 +32,6 @@ test("hidden prices have no usd", () => {
 });
 
 test("page urls use the landing path and zero-based pages", () => {
-  assert.equal(pageUrl("casas", 0), "https://www.remax.com.ar/casas-en-venta-en-mendoza");
-  assert.equal(pageUrl("terrenos", 2), "https://www.remax.com.ar/terrenos-en-venta-en-mendoza?page=2");
+  assert.equal(pageUrl("casas-en-venta", 0), "https://www.remax.com.ar/casas-en-venta-en-mendoza");
+  assert.equal(pageUrl("departamentos-en-alquiler", 2), "https://www.remax.com.ar/departamentos-en-alquiler-en-mendoza?page=2");
 });

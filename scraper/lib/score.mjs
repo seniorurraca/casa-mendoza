@@ -19,15 +19,16 @@ function sizeFactor(listing, { pts, minDorm, minM2 }) {
   return { label: "Tamaño", max: pts, pts: (pts * checks.filter(Boolean).length) / checks.length };
 }
 
-const hasPatio = (listing, freeM2) => listing.features.patio || listing.supT - listing.supC >= freeM2;
+const hasPatio = (listing, freeM2) => listing.features.patio || (listing.type === "casa" && listing.supT - listing.supC >= freeM2);
 const flag = (label, max, condition) => ({ label, max, pts: condition ? max : 0 });
 
 function factorsFor(listing, zonePpm, scoring, maxMinutes) {
   const common = [priceFactor(listing, zonePpm, scoring.priceVsZone), proximityFactor(listing, scoring.proximity, maxMinutes)];
   if (listing.type === "terreno") return common;
+  const credit = listing.operation === "alquiler" ? [] : [flag("Apto crédito", scoring.credito, listing.features.credito)];
   return [
     ...common,
-    flag("Apto crédito", scoring.credito, listing.features.credito),
+    ...credit,
     flag("Patio", scoring.patio.pts, hasPatio(listing, scoring.patio.freeM2)),
     sizeFactor(listing, scoring.size),
     flag("Cochera", scoring.cochera, listing.features.cochera),

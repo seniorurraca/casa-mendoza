@@ -22,9 +22,11 @@
   },
   "sources": {
     "inmoclick": {
-      "groups": {
-        "casas": "casa",
-        "lotes-y-terrenos": "terreno"
+      "segments": {
+        "venta": {
+          "casas": "casa",
+          "lotes-y-terrenos": "terreno"
+        }
       },
       "delayMs": 3000,
       "maxPages": 80,
@@ -38,9 +40,18 @@
       }
     },
     "inmoup": {
-      "groups": {
-        "casas": "casa",
-        "lotes-y-terrenos": "terreno"
+      "segments": {
+        "venta": {
+          "casas-en-venta": "casa",
+          "lotes-y-terrenos-en-venta": "terreno"
+        },
+        "deptos": {
+          "departamentos-en-venta": "departamento"
+        },
+        "alquiler": {
+          "casas-en-alquiler": "casa",
+          "departamentos-en-alquiler": "departamento"
+        }
       },
       "delayMs": 3000,
       "maxPages": 300,
@@ -51,9 +62,18 @@
       "maxUsd": 150000
     },
     "remax": {
-      "groups": {
-        "casas": "casa",
-        "terrenos": "terreno"
+      "segments": {
+        "venta": {
+          "casas-en-venta": "casa",
+          "terrenos-en-venta": "terreno"
+        },
+        "deptos": {
+          "departamentos-en-venta": "departamento"
+        },
+        "alquiler": {
+          "casas-en-alquiler": "casa",
+          "departamentos-en-alquiler": "departamento"
+        }
       },
       "delayMs": 3000,
       "maxPages": 80,
@@ -66,9 +86,18 @@
       }
     },
     "mendozaprop": {
-      "groups": {
-        "3,11": "casa",
-        "17,38": "terreno"
+      "segments": {
+        "venta": {
+          "3,11": "casa",
+          "17,38": "terreno"
+        },
+        "deptos": {
+          "8,21": "departamento"
+        },
+        "alquiler": {
+          "3,11": "casa",
+          "8,21": "departamento"
+        }
       },
       "delayMs": 3000,
       "maxPages": 40,
@@ -194,6 +223,24 @@
       "maxUsd": 90000,
       "minM2": 100,
       "maxM2": 20000
+    },
+    "departamento": {
+      "minUsd": 15000,
+      "maxUsd": 150000,
+      "minM2": 20,
+      "maxM2": 300
+    },
+    "alquiler-casa": {
+      "minUsd": 100,
+      "maxUsd": 3000,
+      "minM2": 30,
+      "maxM2": 1000
+    },
+    "alquiler-departamento": {
+      "minUsd": 100,
+      "maxUsd": 2000,
+      "minM2": 20,
+      "maxM2": 300
     }
   },
   "scoring": {

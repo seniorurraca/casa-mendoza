@@ -3,6 +3,8 @@ name: Scrape
 on:
   schedule:
     - cron: "0 9 * * *"
+    - cron: "0 11 * * *"
+    - cron: "0 12 * * *"
     - cron: "0 1,5,13,17,21 * * *"
   workflow_dispatch:
     inputs:
@@ -11,6 +13,11 @@ on:
         default: full
         type: choice
         options: [full, quick]
+      segment:
+        description: segmento de la corrida full
+        default: venta
+        type: choice
+        options: [venta, deptos, alquiler]
 
 permissions:
   contents: write
@@ -25,6 +32,7 @@ jobs:
     timeout-minutes: 60
     env:
       MODE: ${{ github.event.schedule == '0 1,5,13,17,21 * * *' && 'quick' || inputs.mode || 'full' }}
+      SEGMENT: ${{ github.event.schedule == '0 11 * * *' && 'deptos' || github.event.schedule == '0 12 * * *' && 'alquiler' || inputs.segment || 'venta' }}
     defaults:
       run:
         shell: bash
@@ -34,10 +42,10 @@ jobs:
         with:
           node-version: 24
       - run: npm test 2>&1 | tee -a run.log
-      - run: npm run scrape -- --mode "$MODE" 2>&1 | tee -a run.log
+      - run: npm run scrape -- --mode "$MODE" --segment "$SEGMENT" 2>&1 | tee -a run.log
       - name: Log failure
         if: failure()
-        run: node scraper/log-failure.mjs --mode "$MODE" --log run.log
+        run: node scraper/log-failure.mjs --mode "$MODE" --segment "$SEGMENT" --log run.log
       - name: Commit data
         if: success() || failure()
         run: |

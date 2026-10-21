@@ -5,7 +5,7 @@ const BASE_URL = "https://www.remax.com.ar";
 const PHOTO_BASE = "https://d1acdg20u0pmxj.cloudfront.net";
 const PHOTO_SIZE = "860x440";
 
-export const pageUrl = (group, page) => `${BASE_URL}/${group}-en-venta-en-mendoza${page > 0 ? `?page=${page}` : ""}`;
+export const pageUrl = (group, page) => `${BASE_URL}/${group}-en-mendoza${page > 0 ? `?page=${page}` : ""}`;
 
 function readListingsResponse(html) {
   const json = html.match(/<script id="ng-state" type="application\/json">([\s\S]*?)<\/script>/)?.[1];
@@ -59,7 +59,7 @@ export function parsePage(html, type, usdRate) {
   return { total: totalItems, listings: data.map(item => toListing(item, type, usdRate)) };
 }
 
-const fetchGroup = (group, type, { usdRate, ...options }) => fetchPaginated({
+const fetchGroup = (group, type, { usdRate, operation, ...options }) => fetchPaginated({
   ...options,
   label: `remax ${group}`,
   firstPage: 0,

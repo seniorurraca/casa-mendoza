@@ -62,7 +62,7 @@ test("offer rules keep only cheap, big-enough terrenos", () => {
 test("market median by department with fallback to overall", () => {
   const listings = [400, 500, 600, 700, 800].map((ppm, i) => build({ id: `g${i}`, usd: ppm * 100 }))
     .concat(build({ id: "m1", department: "Maipu", usd: 90000 }));
-  const market = buildMarket(listings, config.segment);
+  const market = buildMarket(listings, config.segment, ["casa", "terreno"]);
   assert.equal(zoneMedian(market, listings[0], 5), 600);
   assert.equal(zoneMedian(market, listings.at(-1), 5), 650);
   assert.equal(median([1, 3]), 2);

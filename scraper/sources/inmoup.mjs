@@ -5,8 +5,8 @@ const BASE_URL = "https://inmoup.com.ar";
 const CREDITO_FLAG = { Si: true, No: false };
 const DESCRIPTION_REF = /^\$\w+$/;
 
-const pageUrl = (group, page, maxUsd) =>
-  `${BASE_URL}/${group}-en-venta-en-mendoza${maxUsd ? `-y-${maxUsd}-o-menos-dolares` : ""}${page > 1 ? `-y-pag-${page}` : ""}`;
+export const pageUrl = (group, page, maxUsd) =>
+  `${BASE_URL}/${group}-en-mendoza${maxUsd ? `-y-${maxUsd}-o-menos-dolares` : ""}${page > 1 ? `-y-pag-${page}` : ""}`;
 
 function flightPayload(html) {
   return [...html.matchAll(/self\.__next_f\.push\((\[[\s\S]*?\])\)<\/script>/g)]
@@ -87,11 +87,11 @@ export function parsePage(html, type, usdRate) {
   return { total, listings: items.map(item => toListing(item, type, usdRate, descriptions)) };
 }
 
-const fetchGroup = (group, type, { usdRate, maxUsd, ...options }) => fetchPaginated({
+const fetchGroup = (group, type, { usdRate, maxUsd, operation, ...options }) => fetchPaginated({
   ...options,
   label: `inmoup ${group}`,
   firstPage: 1,
-  urlFor: page => pageUrl(group, page, maxUsd),
+  urlFor: page => pageUrl(group, page, operation === "venta" ? maxUsd : null),
   parse: html => parsePage(html, type, usdRate),
 });
 

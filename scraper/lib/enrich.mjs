@@ -1,8 +1,9 @@
 import { detectFeatures } from "./text.mjs";
 import { estimateMinutes } from "./geo.mjs";
+import { usefulArea } from "./area.mjs";
 
 export const pricePerM2 = listing => {
-  const m2 = listing.type === "casa" ? listing.supC : listing.supT;
+  const m2 = usefulArea(listing);
   return listing.usd && m2 > 0 ? Math.round(listing.usd / m2) : null;
 };
 

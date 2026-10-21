@@ -1,18 +1,18 @@
 import { hasCoords, haversineKm } from "./geo.mjs";
+import { usefulArea } from "./area.mjs";
 
 const PRICE_TOLERANCE = 0.02;
 const AREA_TOLERANCE = 0.1;
 const MAX_DISTANCE_KM = 0.2;
 
 const close = (a, b, tolerance) => Math.abs(a - b) <= tolerance * Math.max(a, b);
-const areaOf = l => (l.type === "casa" ? l.supC : l.supT);
 
 const bothLocated = (a, b) => hasCoords(a) && hasCoords(b);
 
 const samePlace = (a, b) => (bothLocated(a, b) ? haversineKm(a, b) <= MAX_DISTANCE_KM : Boolean(a.department) && a.department === b.department);
 
 const similarArea = (a, b) =>
-  !areaOf(a) || !areaOf(b) ? bothLocated(a, b) : close(areaOf(a), areaOf(b), AREA_TOLERANCE);
+  !usefulArea(a) || !usefulArea(b) ? bothLocated(a, b) : close(usefulArea(a), usefulArea(b), AREA_TOLERANCE);
 
 export const isSameProperty = (a, b) =>
   a.source !== b.source &&
