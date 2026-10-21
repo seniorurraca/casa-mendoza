@@ -14,7 +14,7 @@ App personal de Andy (`seniorurraca`) y Natalí para **comprar casa o terreno en
 | Qué | Dónde |
 |---|---|
 | Repo (público) | `seniorurraca/casa-mendoza`, push directo a `main` |
-| Sitio | https://seniorurraca.github.io/casa-mendoza/ (GitHub Pages desde `main` / `docs/`) |
+| Sitio | **https://casa-mendoza.pages.dev** (Cloudflare Pages conectado al repo: cada push a `main` publica `docs/`, sin build). Para que la URL no muestre el usuario de GitHub (2026-10-20). Sigue activo también https://seniorurraca.github.io/casa-mendoza/ (GitHub Pages) |
 | Worker favoritos | https://casa-mendoza-favoritos.wow-armeria-api.workers.dev (cuenta Cloudflare personal `orozco.andres96`, D1 `casa-mendoza`). `wrangler` ya logueado en la PC |
 | Datos | `docs/data/listings.json` + `details.json` + `seen.json` + `runs.json`, generados por Actions. **No editar a mano.** |
 
@@ -143,7 +143,7 @@ worker/src/
 - **Favoritos por cuenta:** "Iniciar sesión" (Google) a la derecha de las tabs. Al entrar, los favoritos del navegador se suman a la cuenta (`POST /favorites/merge`) y se borran del `localStorage`. Cada mail tiene su lista. Al salir vuelve a los favoritos locales (vacíos). Cambios optimistas: si el Worker falla, se revierte y avisa.
   - API: `POST /favorites/merge {ids}` → lista; `PUT|DELETE /favorites/:id`. Header `Authorization: Bearer <ID token de Google>`.
   - **Registro abierto** (decisión del usuario 2026-10-20): `ALLOWED_EMAILS = "*"` en `wrangler.toml` → cualquier cuenta Google con mail verificado tiene su lista. Para cerrarlo: lista de mails separada por comas (mejor como `wrangler secret`, no en el repo público).
-  - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://seniorurraca.github.io`, `http://localhost:8080`.
+  - App OAuth "Casa Mendoza" (proyecto Google Cloud `casa-mendoza-512222`) publicada en **Producción**; solo scopes básicos (openid/email/profile) → sin verificación de Google ni dominio propio. Orígenes autorizados: `https://casa-mendoza.pages.dev`, `https://seniorurraca.github.io`, `http://localhost:8080` (los mismos en `ALLOWED_ORIGINS` del Worker). Branding: `/`, `/privacidad`, `/condiciones` en pages.dev (Pages sirve sin `.html`; con `.html` hace 308).
 - **Storage:**
   - `localStorage`: `casa-mendoza:filters`, `:favorites` (solo sin login), `:zones`, `:last-visit`, `:google-token`, `:theme`.
   - `sessionStorage`: `casa-mendoza:visit-baseline` (recargar no reinicia la visita).
