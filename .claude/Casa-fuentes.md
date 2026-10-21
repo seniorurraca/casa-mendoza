@@ -88,6 +88,17 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 - **No trae coordenadas** → `minutes` null y el dedupe compara departamento en vez de distancia.
 - No ordena por fecha conocida → sin quick.
 
+## Segmentos por fuente (config `sources.{name}.segments`)
+
+| Fuente | venta | deptos | alquiler |
+|---|---|---|---|
+| Inmoclick | `casas`, `lotes-y-terrenos` (`/inmuebles/venta/{grupo}/mendoza`) | — (URL sin verificar) | — (URL sin verificar) |
+| Inmoup | `{casas|lotes-y-terrenos}-en-venta` + tope USD | `departamentos-en-venta` (~2.950, 2026-10-20) | `casas-en-alquiler` (~620), `departamentos-en-alquiler` (~1.700), sin tope de precio |
+| RE/MAX | `{casas|terrenos}-en-venta` | `departamentos-en-venta` | `{casas|departamentos}-en-alquiler` |
+| MendozaProp | `3,11` / `17,38` (operationType 2) | `8,21` | `3,11` / `8,21` (operationType 1) |
+
+La clave del grupo es parte de la URL: Inmoup y RE/MAX `/{grupo}-en-mendoza`. Para sumar Inmoclick a deptos/alquiler hay que verificar sus URLs desde Actions (no desde la PC del usuario).
+
 ## Dedupe entre portales
 
 Las inmobiliarias publican lo mismo en ambos portales (~1.580 duplicados por corrida). Criterio en `scraper/lib/dedupe.mjs`: distinto `source`, mismo `type`, precio ±2%, distancia < 200 m, superficie ±10%. Si a alguno le faltan coordenadas (MendozaProp siempre): mismo departamento y superficie ±10% obligatoria (sin superficie no se une). El resultado conserva el aviso más completo y guarda los demás en `alsoOn[{source,url}]`; la UI los muestra como "Inmoup · Inmoclick" y el filtro de Portales los considera.
