@@ -215,6 +215,11 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 
 ## Ideas pendientes
 
+- **Próximo (decidido por el usuario 2026-10-20, sin implementar):**
+  - **Departamentos:** nuevo tipo, filtrable pero no incluido por defecto en "Todo". Puntaje sin factor terreno; el patio sí puede aplicar.
+  - **Alquileres:** selector Comprar / Alquilar. Precio en ARS por mes; tope editable por el usuario, default **$1.000.000**. Sin apto crédito en el puntaje.
+  - **Volumen:** departamentos (y alquileres) se actualizan en las corridas completas. Estudiar si conviene 1 corrida larga o varias medianas (p. ej. 3) para bajar el riesgo de bloqueo.
+
 - Alertas (Telegram/email) para avisos con puntaje > 85 ("a futuro").
 - Mapa con todos los avisos (Leaflet + OSM).
 - Más fuentes: RE/MAX, MercadoLibre (API oficial), alertas por email de Zonaprop/Argenprop vía Cloudflare Email Worker, bookmarklet.
