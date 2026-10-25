@@ -286,6 +286,7 @@ summary { cursor: pointer; }
 .run-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .run-link { margin-left: auto; font-size: 13px; }
 .run-error { margin: 8px 0 0; padding: 10px; max-height: 200px; overflow: auto; border-radius: var(--radius-sm); background: var(--surface-2); font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+.run-failed { margin: 4px 0 0; color: var(--bad-fg); font-size: 13px; word-break: break-word; }
 
 .carousel { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: rgb(0 0 0 / 0.94); overflow: hidden; touch-action: pan-y; }
 .carousel[open] { display: grid; place-items: center; }

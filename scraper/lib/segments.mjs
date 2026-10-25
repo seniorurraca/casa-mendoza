@@ -9,7 +9,8 @@ export function segmentOf(listing) {
   return listing.type === "departamento" ? "deptos" : "venta";
 }
 
-export const replaceSegment = (existing, incoming, segment) => [...existing.filter(l => segmentOf(l) !== segment), ...incoming];
+export const replaceSegment = (existing, incoming, segment, keepSources = []) =>
+  [...existing.filter(l => segmentOf(l) !== segment || keepSources.includes(l.source)), ...incoming];
 
 export const marketKey = listing => (listing.operation === RENT ? `${RENT}-${listing.type}` : listing.type);
 

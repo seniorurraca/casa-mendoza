@@ -16,6 +16,8 @@ const duration = run => (run.startedAt ? ` · ${Math.max(1, Math.round((Date.par
 
 const scannedText = scanned => Object.entries(scanned).map(([source, count]) => `${SOURCE_LABEL[source] ?? escapeHtml(source)} ${count}`).join(" · ");
 
+const failedText = failed => Object.entries(failed ?? {}).map(([source, error]) => `<p class="run-failed">${SOURCE_LABEL[source] ?? escapeHtml(source)} falló: ${escapeHtml(error)}. Se conservan sus avisos anteriores.</p>`).join("");
+
 const runRow = run => `
   <li class="run">
     <div class="run-head">
@@ -24,7 +26,7 @@ const runRow = run => `
       <span class="muted">${escapeHtml(run.mode)}${duration(run)}</span>
       ${run.url ? `<a class="run-link" href="${escapeHtml(run.url)}" target="_blank" rel="noopener">Ver en GitHub</a>` : ""}
     </div>
-    ${run.ok ? `<p class="muted">${scannedText(run.scanned)} revisados · ${run.kept} en la lista · ${run.new} nuevos</p>` : `<pre class="run-error">${escapeHtml(run.error)}</pre>`}
+    ${run.ok ? `<p class="muted">${scannedText(run.scanned)} revisados · ${run.kept} en la lista · ${run.new} nuevos</p>${failedText(run.failed)}` : `<pre class="run-error">${escapeHtml(run.error)}</pre>`}
   </li>`;
 
 const render = runs => {

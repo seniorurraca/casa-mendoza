@@ -26,6 +26,20 @@ export async function fetchGroups(groups, fetchGroup, options) {
   return [...new Map(all.map(listing => [listing.id, listing])).values()];
 }
 
+export async function collectSources(entries, fetchSource) {
+  const found = {};
+  const failed = {};
+  for (const [name, options] of entries) {
+    try {
+      found[name] = await fetchSource(name, options);
+    } catch (error) {
+      console.error(`${name} falló: ${error.message}`);
+      failed[name] = error.message;
+    }
+  }
+  return { found, failed };
+}
+
 export const sourcesFor = (sources, mode, segment) => Object.entries(sources)
   .filter(([, options]) => options.segments[segment] && (mode === "full" || options.quick))
   .map(([name, { quick, segments, ...options }]) => [name, { ...options, groups: segments[segment], ...(mode === "full" ? {} : quick) }]);

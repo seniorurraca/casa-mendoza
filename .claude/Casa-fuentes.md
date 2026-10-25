@@ -6,7 +6,7 @@ Detalle técnico de cada portal. Las reglas de scraping (no correr desde la PC d
 |---|---|---|---|
 | Inmoclick | ✅ en uso | full + quick | `scraper/sources/inmoclick.mjs` |
 | Inmoup | ✅ en uso | solo full | `scraper/sources/inmoup.mjs` |
-| RE/MAX | ✅ en uso (desde 2026-10-20) | full + quick | `scraper/sources/remax.mjs` |
+| RE/MAX | ⚠️ 403 desde Actions desde 2026-10-21 (primer pedido de cada corrida; bloquea IPs de GitHub, no es volumen). Se sigue intentando 1 pedido por corrida por si levanta. No evadir | full + quick | `scraper/sources/remax.mjs` |
 | MercadoLibre | web 200, API pública 403 → solo con app oficial de ML Developers (la tiene que crear el usuario) | — | — |
 | Argenprop | ❌ desafío anti-bot: la 1ª consulta dio 200, pero desde la 4ª (2026-10-20) responde **202 vacío y redirige a `/n0`** (mismo patrón WAF que bloqueó Inmoclick). No viable sin evadir. Además `robots.txt` solo permite `?pagina-1..3` por búsqueda. Datos útiles si algún día se habilita: atributos en `<a class="card">` (`idaviso`, `montooperacion`, `idmoneda` 2=USD, `dormitorios`, `idpartido`), sin coordenadas | — | No evadir |
 | Inmuebles Clarín | mismo grupo y mismo `robots.txt` que Argenprop → mismo inventario, no suma | — | — |

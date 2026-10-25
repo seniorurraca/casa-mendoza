@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { operationOf, replaceSegment, segmentOf } from "../scraper/lib/segments.mjs";
-import { sourcesFor } from "../scraper/lib/sources.mjs";
+import { collectSources, sourcesFor } from "../scraper/lib/sources.mjs";
 import { buildMarket, zoneMedian } from "../scraper/lib/market.mjs";
 import { scoreListing } from "../scraper/lib/score.mjs";
 import { enrich } from "../scraper/lib/enrich.mjs";
@@ -22,6 +22,22 @@ test("a segment run replaces only that segment", () => {
   const existing = [{ id: "c", type: "casa" }, { id: "d1", type: "departamento", operation: "venta" }, { id: "a", type: "casa", operation: "alquiler" }];
   const merged = replaceSegment(existing, [{ id: "d2", type: "departamento", operation: "venta" }], "deptos");
   assert.deepEqual(merged.map(l => l.id), ["c", "a", "d2"]);
+});
+
+test("a segment run keeps the previous listings of sources that failed", () => {
+  const existing = [{ id: "r1", source: "remax", type: "casa" }, { id: "i1", source: "inmoup", type: "casa" }];
+  const merged = replaceSegment(existing, [{ id: "i2", source: "inmoup", type: "casa" }], "venta", ["remax"]);
+  assert.deepEqual(merged.map(l => l.id), ["r1", "i2"]);
+});
+
+test("one failing source does not stop the others", async () => {
+  const fetchSource = async name => {
+    if (name === "remax") throw new Error("HTTP 403");
+    return [{ id: name }];
+  };
+  const { found, failed } = await collectSources([["inmoup", {}], ["remax", {}], ["mendozaprop", {}]], fetchSource);
+  assert.deepEqual(Object.keys(found), ["inmoup", "mendozaprop"]);
+  assert.deepEqual(failed, { remax: "HTTP 403" });
 });
 
 const sources = {

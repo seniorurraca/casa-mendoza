@@ -14,7 +14,7 @@ import { flagNew, readPrevious, registerSeen, upsert, withHistory } from "./lib/
 import { dataFile, readJson, writeJson } from "./lib/files.mjs";
 import { appendRun, runUrl } from "./lib/runs.mjs";
 import { dedupe } from "./lib/dedupe.mjs";
-import { sourcesFor } from "./lib/sources.mjs";
+import { collectSources, sourcesFor } from "./lib/sources.mjs";
 import { MARKET_KEYS, SEGMENTS, operationOf, replaceSegment } from "./lib/segments.mjs";
 
 const SOURCES = { inmoclick, inmoup, remax, mendozaprop };
@@ -38,18 +38,15 @@ const runsPath = dataFile(config, "runs.json");
 const startedAt = new Date().toISOString();
 
 const usdRate = await getUsdRate(config.usdRate);
-const scraped = [];
-const scannedBySource = {};
-for (const [name, options] of sourcesFor(config.sources, mode, segment)) {
-  const maxPages = Number(args["max-pages"] ?? options.maxPages);
-  const found = await SOURCES[name].fetchAll({ ...options, maxPages, usdRate, operation });
-  scannedBySource[name] = found.length;
-  scraped.push(...found.map(l => enrich({ ...l, operation }, config)));
-}
+const { found, failed } = await collectSources(sourcesFor(config.sources, mode, segment), (name, options) =>
+  SOURCES[name].fetchAll({ ...options, maxPages: Number(args["max-pages"] ?? options.maxPages), usdRate, operation }));
+if (!Object.keys(found).length) throw new Error(`todas las fuentes fallaron: ${JSON.stringify(failed)}`);
+const scannedBySource = Object.fromEntries(Object.entries(found).map(([name, listings]) => [name, listings.length]));
+const scraped = Object.values(found).flat().map(l => enrich({ ...l, operation }, config));
 
 const previous = readPrevious(config.output, detailsPath);
 const area = partition(scraped, config, AREA_RULES);
-const pool = mode === "full" ? replaceSegment(previous.hydrated, area.kept, segment) : upsert(previous.hydrated, area.kept);
+const pool = mode === "full" ? replaceSegment(previous.hydrated, area.kept, segment, Object.keys(failed)) : upsert(previous.hydrated, area.kept);
 const unique = dedupe(pool);
 const market = mode === "full" ? { ...previous.data.market, ...buildMarket(unique, config.segment, MARKET_KEYS[segment]) } : previous.data.market;
 const offer = partition(unique, config, OFFER_RULES);
@@ -91,6 +88,6 @@ writeJson(config.output, result);
 writeJson(detailsPath, Object.fromEntries(offer.kept.map(l => [l.id, { description: l.description, photos: l.photos ?? [] }])));
 writeJson(seenPath, seen);
 writeJson(runsPath, appendRun(readJson(runsPath, []), {
-  mode, segment, ok: true, startedAt, finishedAt: now, scanned: scannedBySource, kept: listings.length, new: newCount, error: null, url: runUrl(process.env),
+  mode, segment, ok: true, startedAt, finishedAt: now, scanned: scannedBySource, kept: listings.length, new: newCount, error: null, failed, url: runUrl(process.env),
 }));
 console.log(mode, segment, JSON.stringify(result.stats, null, 2));

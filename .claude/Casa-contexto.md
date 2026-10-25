@@ -47,7 +47,9 @@ GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare 
 - Inmoclick solo está en el segmento venta: sus URLs de alquiler/deptos no se pudieron verificar (IP de la casa bloqueada).
 - GitHub retrasa los cron ~20–30 min. Es normal.
 - Corre `npm test` antes de scrapear, y hace `git pull --rebase` antes de pushear los datos.
-- Si el scraper falla, aborta **sin pisar** los JSON: el sitio sigue con los datos anteriores.
+- **Fuentes aisladas** (desde 2026-10-24, `collectSources`): si un portal falla, la corrida sigue con los demás y se conservan los avisos anteriores de ese portal (`replaceSegment(..., keepSources)`). Se registra en `runs.json` como `failed{fuente: error}` y el 📋 Registro lo muestra en rojo. Antes, un 403 de RE/MAX (21–24/10) tiró **todas** las corridas 4 días y descartó ~365 páginas ya bajadas de Inmoclick/Inmoup.
+- **403 = bloqueo → sin reintentos** (`withRetry` corta en `status === 403`): reintentar un bloqueo suma pedidos y empeora. 202/5xx sí se reintentan.
+- Si **todas** las fuentes fallan, aborta **sin pisar** los JSON: el sitio sigue con los datos anteriores.
 - Todo el output (tests + scraper) va a `run.log` (`tee`, `shell: bash` → pipefail). Si falla, `scraper/log-failure.mjs` agrega la corrida fallida a `runs.json` con las últimas 15 líneas del log, y el paso de commit corre igual (`success() || failure()`). Timeout/cancelación no se registran: la UI los detecta como "sin corridas" (> 8 h).
 
 ## Mapa del código
@@ -136,7 +138,7 @@ worker/src/
   - Cada listing: `id` (`{source}-{usr}-{prp}`), `source`, `type` (casa|terreno|departamento), `operation` (venta|alquiler; ausente = venta), `url`, `photo`, `photosApi`, `photoCount`, `usd`, `priceRaw`, `supT`, `supC`, `dorm`, `banos`, `lat`, `lng`, `department`, `address`, `locationText` (normalizado, para barrios), `publishedAt`, `agency`, `features{credito,patio,cochera,posesion,reciclar}`, `minutes`, `ppm`, `alsoOn[]`, `score`, `discount`, `zonePpm`, `breakdown[]`, `suspicious`, `firstSeen` (fecha), `firstSeenAt` (ISO; null en avisos anteriores al 2026-10-19), `prevUsd`.
 - `details.json`: `{ [id]: { description, photos[] } }`.
 - `seen.json`: `{ [id]: firstSeenAt }`. Solo lo usa el scraper.
-- `runs.json`: últimas 60 corridas, la más nueva primero: `mode`, `ok`, `startedAt` (null si falló), `finishedAt`, `scanned{fuente: n}`, `kept`, `new`, `error` (tail del log), `url` (run de Actions).
+- `runs.json`: últimas 60 corridas, la más nueva primero: `mode`, `ok`, `startedAt` (null si falló), `finishedAt`, `scanned{fuente: n}`, `kept`, `new`, `failed{fuente: error}` (fuentes caídas en una corrida OK), `error` (tail del log), `url` (run de Actions).
 - Peso: ~4 MB + ~6,5 MB sin comprimir (~650 KB gzip la lista). Si molesta en móvil → partir en archivos más chicos.
 
 ## Frontend
