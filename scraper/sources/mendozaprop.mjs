@@ -5,7 +5,7 @@ import { normalize } from "../lib/text.mjs";
 const BASE_URL = "https://www.mendozaprop.com";
 const OPERATION_TYPE = { venta: 2, alquiler: 1 };
 const USD = 1;
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 1000;
 const DEPARTMENTS = {
   mendoza: "Capital",
   godoycruz: "Godoy Cruz",

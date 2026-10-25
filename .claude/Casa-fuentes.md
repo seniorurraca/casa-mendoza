@@ -22,7 +22,7 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 
 ## Inmoclick (`inmoclick.com`)
 
-- Listado: `/inmuebles/venta/{casas|lotes-y-terrenos}/mendoza?limit=48&page=N`. En quick se agrega `&ordenar=recientes`.
+- Listado: `/inmuebles/venta/{casas|lotes-y-terrenos}/mendoza?limit=200&page=N` (`PAGE_SIZE`). Antes `limit=48`; probado desde Actions el 2026-10-24: `limit=200` → 200 avisos, 3,2 MB, casas en 13 páginas en vez de ~54 (¼ de pedidos). En quick se agrega `&ordenar=recientes`.
 - Paginación: links con `&amp;page=N` (HTML escapado). `lastPage()` toma el máximo.
 - Cada aviso es un `<article>` con atributos:
   - `precio` ("US$ 215.000" o "$ ..." en pesos)
@@ -83,7 +83,7 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 
 ## MendozaProp (`mendozaprop.com`) — Next.js, datos por API JSON propia
 
-- Sin `robots.txt` (404). El HTML no trae avisos: la página los pide a `/api/properties?limit=&offset=&isMap=false&operationType=&propertyType=` (GET simple, sin auth ni chequeo de Origin; funciona con curl). Usamos `limit=100`.
+- Sin `robots.txt` (404). El HTML no trae avisos: la página los pide a `/api/properties?limit=&offset=&isMap=false&operationType=&propertyType=` (GET simple, sin auth ni chequeo de Origin; funciona con curl). Usamos `limit=1000` (`PAGE_SIZE`; probado 2026-10-24: devuelve 1000, 2,2 MB, ~4 s). Antes 100.
 - `operationType`: 1 = alquiler, 2 = venta. `propertyType` acepta lista: casa 3 (+11 dúplex, 4 casa quinta no), terreno 17 (Lote) y 38 (Terreno), departamento 8, galpón 14, bodega 1109. Config: `groups: { "3,11": "casa", "17,38": "terreno" }`.
 - La API devuelve un **array sin total**: se pagina con `offset` hasta que vuelve menos de `limit`.
 - Campos: `id` (URL `/venta-{tipo}/{id}`, el slug no importa), `price` (string) + `currency_id` (1 USD, 2 ARS), `m2` (total), `m2_covered`, `bedrooms`, `bathrooms`, `parking`, `credit` (1 = apto; 0 no es confiable → null), `regions[0]` (slug: mendoza=Capital, godoycruz, guaymallen, lasheras, lujandecuyo, maipu), `address`, `images[]`, `description`, `owner_company`, `active`.

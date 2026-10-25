@@ -40,7 +40,7 @@
       },
       "quick": {
         "order": "recent",
-        "maxPages": 3
+        "maxPages": 1
       }
     },
     "inmoup": {

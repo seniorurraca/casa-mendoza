@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { lastPage, parseListings } from "../scraper/sources/inmoclick.mjs";
+import { lastPage, parseListings, pageUrl } from "../scraper/sources/inmoclick.mjs";
 
 const html = readFileSync(new URL("./fixtures/inmoclick-casas.html", import.meta.url), "utf8");
 
@@ -41,4 +41,8 @@ test("parses every card in the page", () => {
 
 test("reads last page from pagination links", () => {
   assert.equal(lastPage(html), 52);
+});
+
+test("asks for 200 listings per page to make fewer requests", () => {
+  assert.equal(pageUrl("casas", 2, "recent"), "https://inmoclick.com/inmuebles/venta/casas/mendoza?limit=200&page=2&ordenar=recientes");
 });

@@ -4,6 +4,7 @@ import { parsePrice } from "../lib/currency.mjs";
 import { decodeEntities, normalize } from "../lib/text.mjs";
 
 const BASE_URL = "https://inmoclick.com";
+const PAGE_SIZE = 200;
 const DISABLED = "disable";
 const EMBEDDED_MARKER = "var propiedades = ";
 const CREDITO_FLAG = { Si: true, No: false };
@@ -15,7 +16,7 @@ const isEnabled = value => Boolean(value) && value !== DISABLED;
 
 const ORDER_PARAM = { recent: "&ordenar=recientes" };
 
-const pageUrl = (group, page, order) => `${BASE_URL}/inmuebles/venta/${group}/mendoza?limit=48&page=${page}${ORDER_PARAM[order] ?? ""}`;
+export const pageUrl = (group, page, order) => `${BASE_URL}/inmuebles/venta/${group}/mendoza?limit=${PAGE_SIZE}&page=${page}${ORDER_PARAM[order] ?? ""}`;
 const photosApiUrl = (usuario, propiedad) => `${BASE_URL}/json/inmuebles/fotos?usuario=${usuario}&propiedad=${propiedad}`;
 
 export const lastPage = html => Math.max(1, ...[...html.matchAll(/(?:\?|&amp;|&)page=(\d+)/g)].map(m => Number(m[1])));

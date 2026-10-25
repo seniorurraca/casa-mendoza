@@ -33,6 +33,6 @@ test("prices in pesos are converted", () => {
 });
 
 test("api url pages with offset", () => {
-  assert.equal(apiUrl("3,11", 2, "venta"), "https://www.mendozaprop.com/api/properties?limit=100&offset=200&isMap=false&operationType=2&propertyType=3,11");
-  assert.equal(apiUrl("8", 0, "alquiler"), "https://www.mendozaprop.com/api/properties?limit=100&offset=0&isMap=false&operationType=1&propertyType=8");
+  assert.equal(apiUrl("3,11", 2, "venta"), "https://www.mendozaprop.com/api/properties?limit=1000&offset=2000&isMap=false&operationType=2&propertyType=3,11");
+  assert.equal(apiUrl("8", 0, "alquiler"), "https://www.mendozaprop.com/api/properties?limit=1000&offset=0&isMap=false&operationType=1&propertyType=8");
 });
