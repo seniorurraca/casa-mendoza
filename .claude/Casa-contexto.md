@@ -41,7 +41,7 @@ GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare 
 | `full --segment venta` | `0 9 * * *` | 06:00 | Casas y terrenos en venta, todos los portales. Recalcula medianas de su segmento. Elimina bajas **de su segmento** | ~45–50 min |
 | `full --segment deptos` | `0 11 * * *` | 08:00 | Departamentos en venta (Inmoup, RE/MAX, MendozaProp) | ~10 min |
 | `full --segment alquiler` | `0 12 * * *` | 09:00 | Casas y deptos en alquiler (Inmoup, RE/MAX, MendozaProp) | ~10 min |
-| `quick` | `0 1,5,13,17,21 * * *` | 22, 02, 10, 14, 18 | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo; RE/MAX 2 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
+| `quick` | **sin cron** (desde 2026-10-24, solo a mano con Run workflow) | — | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo; RE/MAX 2 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
 
 - **Por qué 3 corridas full y no 1 larga** (estudio 2026-10-20): cada job corre en una VM nueva de GitHub (IP distinta), con ráfagas cortas separadas 1–2 h; si una falla, las otras no se pierden. Partir más la venta no baja los pedidos diarios por portal, solo los reparte.
 - Inmoclick solo está en el segmento venta: sus URLs de alquiler/deptos no se pudieron verificar (IP de la casa bloqueada).
@@ -222,7 +222,7 @@ Para el usuario (PowerShell): `npm.cmd` / `npx.cmd`, `;` en lugar de `&&`, `cd` 
 - Python no estaba instalado → todo en Node, un solo lenguaje.
 - Zonas peligrosas filtradas en el frontend (no en el scraper) para que el usuario las edite.
 - Apto crédito: campo estructurado del portal > regex de texto.
-- Corridas quick cada 4 h (pedido del usuario): para enterarse antes de lo nuevo. No bajan el riesgo de bloqueo: eso lo hacen el delay y pedir menos páginas.
+- Corridas quick cada 4 h (pedido del usuario, 2026-10-19) → **quitadas del cron el 2026-10-24** (pedido del usuario: scrapear 1 vez por día para no ser bloqueados). Cada página de cada portal se pide 1 vez por día. Rotar IPs/proxies para esquivar bloqueos **no se hace** (evasión).
 - Sin base de datos: el registro de ids vistos (`seen.json`) y el log de corridas (`runs.json`) son JSON commiteados por Actions. Cloudflare (Worker + KV/D1) queda para lo que necesite escribir desde el navegador (favoritos sincronizados).
 - El Worker usa el subdominio `wow-armeria-api.workers.dev` porque es único por cuenta de Cloudflare y la cuenta ya lo tenía de otro proyecto (una armería). El usuario decidió dejarlo (2026-10-20): no cambiarlo, porque rompería los Workers de ese otro proyecto.
 - Nombre del sitio "Casa Mendoza" (antes "Próximo hogar · Andy & Natalí"; se cambió el 2026-10-20 para poder compartirlo) + favicon casita con corazón (`docs/favicon.svg`).

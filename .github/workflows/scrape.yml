@@ -5,7 +5,6 @@ on:
     - cron: "0 9 * * *"
     - cron: "0 11 * * *"
     - cron: "0 12 * * *"
-    - cron: "0 1,5,13,17,21 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -31,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      MODE: ${{ github.event.schedule == '0 1,5,13,17,21 * * *' && 'quick' || inputs.mode || 'full' }}
+      MODE: ${{ inputs.mode || 'full' }}
       SEGMENT: ${{ github.event.schedule == '0 11 * * *' && 'deptos' || github.event.schedule == '0 12 * * *' && 'alquiler' || inputs.segment || 'venta' }}
     defaults:
       run:
