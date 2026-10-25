@@ -6,7 +6,7 @@ Detalle técnico de cada portal. Las reglas de scraping (no correr desde la PC d
 |---|---|---|---|
 | Inmoclick | ✅ en uso | full + quick | `scraper/sources/inmoclick.mjs` |
 | Inmoup | ✅ en uso | solo full | `scraper/sources/inmoup.mjs` |
-| RE/MAX | ⚠️ 403 desde Actions desde 2026-10-21 (primer pedido de cada corrida; bloquea IPs de GitHub, no es volumen). Se sigue intentando 1 pedido por corrida por si levanta. No evadir | full + quick | `scraper/sources/remax.mjs` |
+| RE/MAX | ⏸️ **sacado de `config.sources` el 2026-10-24** (pedido del usuario): 403 desde Actions desde 2026-10-21 (primer pedido de cada corrida; bloquea IPs de GitHub, no es volumen). Módulo y tests se conservan. No evadir | — | `scraper/sources/remax.mjs` |
 | MercadoLibre | web 200, API pública 403 → solo con app oficial de ML Developers (la tiene que crear el usuario) | — | — |
 | Argenprop | ❌ desafío anti-bot: la 1ª consulta dio 200, pero desde la 4ª (2026-10-20) responde **202 vacío y redirige a `/n0`** (mismo patrón WAF que bloqueó Inmoclick). No viable sin evadir. Además `robots.txt` solo permite `?pagina-1..3` por búsqueda. Datos útiles si algún día se habilita: atributos en `<a class="card">` (`idaviso`, `montooperacion`, `idmoneda` 2=USD, `dormitorios`, `idpartido`), sin coordenadas | — | No evadir |
 | Inmuebles Clarín | mismo grupo y mismo `robots.txt` que Argenprop → mismo inventario, no suma | — | — |
@@ -71,6 +71,8 @@ Contrato de una fuente: exportar `fetchAll({ groups, delayMs, maxPages, retry, u
 - Volumen con tope de 150k: ~2.600 casas + ~3.800 terrenos ≈ 270 páginas (~14 min a 3 s).
 
 ## RE/MAX (`remax.com.ar`) — Angular SSR
+
+- **Para reactivarlo**, volver a agregar en `config.sources` (antes de `mendozaprop`): `"remax": { "segments": { "venta": { "casas-en-venta": "casa", "terrenos-en-venta": "terreno" }, "deptos": { "departamentos-en-venta": "departamento" }, "alquiler": { "casas-en-alquiler": "casa", "departamentos-en-alquiler": "departamento" } }, "delayMs": 3000, "maxPages": 80, "retry": { "retries": 2, "backoffMs": 60000 }, "quick": { "maxPages": 2 } }`. Probar antes con `gh workflow run` (1 corrida).
 
 - Listado: `/{casas|terrenos}-en-venta-en-mendoza`, página N: `?page=N` (base 0). 24 por página, ordenado por más nuevos (`sort=-createdAt`), por eso tiene quick (2 páginas).
 - Volumen (2026-10-20): ~1.420 casas (60 págs.) + ~1.320 terrenos (56 págs.). Incluye toda la provincia; `AREA_RULES` saca lo lejano.

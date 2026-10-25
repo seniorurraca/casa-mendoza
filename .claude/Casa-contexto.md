@@ -39,9 +39,9 @@ GitHub Actions (cron) → `scraper/` (Node) → JSON commiteados → Cloudflare 
 | Modo | Cron UTC | Hora ART | Qué hace | Duración |
 |---|---|---|---|---|
 | `full --segment venta` | `0 9 * * *` | 06:00 | Casas y terrenos en venta, todos los portales. Recalcula medianas de su segmento. Elimina bajas **de su segmento** | ~45–50 min |
-| `full --segment deptos` | `0 11 * * *` | 08:00 | Departamentos en venta (Inmoup, RE/MAX, MendozaProp) | ~10 min |
-| `full --segment alquiler` | `0 12 * * *` | 09:00 | Casas y deptos en alquiler (Inmoup, RE/MAX, MendozaProp) | ~10 min |
-| `quick` | **sin cron** (desde 2026-10-24, solo a mano con Run workflow) | — | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo; RE/MAX 2 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
+| `full --segment deptos` | `0 11 * * *` | 08:00 | Departamentos en venta (Inmoup, MendozaProp) | ~10 min |
+| `full --segment alquiler` | `0 12 * * *` | 09:00 | Casas y deptos en alquiler (Inmoup, MendozaProp) | ~10 min |
+| `quick` | **sin cron** (desde 2026-10-24, solo a mano con Run workflow) | — | Solo fuentes con `quick` en config (Inmoclick "recientes" 3 páginas por grupo). **Upsert** sobre los datos previos, no borra nada, reusa el `market` previo | ~35 s |
 
 - **Por qué 3 corridas full y no 1 larga** (estudio 2026-10-20): cada job corre en una VM nueva de GitHub (IP distinta), con ráfagas cortas separadas 1–2 h; si una falla, las otras no se pierden. Partir más la venta no baja los pedidos diarios por portal, solo los reparte.
 - Inmoclick solo está en el segmento venta: sus URLs de alquiler/deptos no se pudieron verificar (IP de la casa bloqueada).
@@ -59,7 +59,7 @@ scraper/index.mjs              orquestador: --mode full|quick, --max-pages N
 scraper/log-failure.mjs        registra una corrida fallida en runs.json (lo llama el workflow)
 scraper/sources/inmoclick.mjs  fuente Inmoclick      (detalles en Casa-fuentes.md)
 scraper/sources/inmoup.mjs     fuente Inmoup
-scraper/sources/remax.mjs      fuente RE/MAX
+scraper/sources/remax.mjs      fuente RE/MAX (fuera de config desde 2026-10-24 por 403)
 scraper/sources/mendozaprop.mjs fuente MendozaProp (API JSON, sin coordenadas)
 scraper/lib/
   http.mjs      fetch con User-Agent; status != 200 = error; withRetry (backoff)
