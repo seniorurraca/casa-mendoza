@@ -63,10 +63,14 @@ export const mapsLink = (l, { text = "", className = "icon-btn" } = {}) =>
 
 const IGNORE_RADII_M = [200, 500];
 
-export const ignoreButtons = l => (!hasCoords(l) ? "" : IGNORE_RADII_M.map(r => {
-  const label = `Ocultar este aviso y los que estén a ${r} m alrededor`;
-  return `<button type="button" class="icon-btn ignore" data-ignore-radius="${r}" title="${label}" aria-label="${label}">${ICONS.eyeOff}<span>${r} m</span></button>`;
-}).join(""));
+export const ignoreMenu = l => (!hasCoords(l) ? "" : `
+<details class="ignore-menu">
+  <summary class="icon-btn" title="Ocultar esta zona" aria-label="Ocultar esta zona">${ICONS.eyeOff}</summary>
+  <div class="menu">
+    <p class="menu-title">Ocultar este aviso y los cercanos</p>
+    ${IGNORE_RADII_M.map(r => `<button type="button" class="menu-option" data-ignore-radius="${r}">${r} m alrededor</button>`).join("")}
+  </div>
+</details>`);
 
 export const favButton = (l, isFavorite) => {
   const label = isFavorite ? "Quitar de favoritos" : "Guardar en favoritos";

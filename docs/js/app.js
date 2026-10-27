@@ -231,6 +231,7 @@ document.addEventListener("input", event => {
 
 document.addEventListener("click", event => {
   if (moreFilters.open && !moreFilters.contains(event.target)) moreFilters.open = false;
+  document.querySelectorAll(".ignore-menu[open]").forEach(menu => { if (!menu.contains(event.target)) menu.open = false; });
 });
 
 form.addEventListener("reset", event => {
@@ -244,7 +245,10 @@ list.addEventListener("click", event => {
   if (favId) return toggleFavorite(favId);
   if (event.target.closest("a")) return;
   const radius = event.target.closest("[data-ignore-radius]")?.dataset.ignoreRadius;
+  const menu = event.target.closest(".ignore-menu");
+  if (radius) menu.open = false;
   if (radius) return ignoreArea(byId(event.target.closest(".card").dataset.id), Number(radius));
+  if (menu) return;
   const action = event.target.closest("[data-action]")?.dataset.action;
   const id = event.target.closest(".card")?.dataset.id;
   if (action === "carousel") openCarousel(byId(id));
