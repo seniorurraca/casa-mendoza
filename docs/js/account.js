@@ -8,6 +8,8 @@ const GIS_URL = "https://accounts.google.com/gsi/client";
 
 const tokenStore = storedValue("casa-mendoza:google-token");
 
+const compactScreen = matchMedia("(max-width: 480px)");
+
 const loadGis = () => new Promise((resolve, reject) => {
   const script = Object.assign(document.createElement("script"), { src: GIS_URL, async: true, onload: resolve, onerror: reject });
   document.head.append(script);
@@ -35,9 +37,8 @@ export function createAccount(container, { onLogin, onLogout }) {
 
   function renderSignedOut() {
     container.innerHTML = "";
-    const compact = matchMedia("(max-width: 480px)").matches;
     google.accounts.id.renderButton(container, {
-      type: compact ? "icon" : "standard", theme: isDarkTheme() ? "filled_black" : "outline", size: "large", text: "signin", shape: "pill",
+      type: compactScreen.matches ? "icon" : "standard", theme: isDarkTheme() ? "filled_black" : "outline", size: "large", text: "signin", shape: "pill",
     });
   }
 
@@ -70,6 +71,7 @@ export function createAccount(container, { onLogin, onLogout }) {
 
   loadGis().then(() => {
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, auto_select: true, callback: ({ credential }) => login(credential) });
+    compactScreen.addEventListener("change", () => { if (!container.querySelector(".account-menu")) renderSignedOut(); });
     const saved = tokenStore.get();
     if (isFresh(saved)) return login(saved);
     renderSignedOut();

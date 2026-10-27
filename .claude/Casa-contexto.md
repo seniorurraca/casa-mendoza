@@ -90,7 +90,7 @@ docs/js/
   runs-dialog.js    diálogo 📋 Registro + punto rojo en el botón si fail/stale
   multiselect.js    combo multi-selección (Tipo, Departamento, Portales)
   loaders.js        fotos (API Inmoclick o details.json) + descripción, con caché
-  account.js        login Google Identity Services (botón, auto_select, renueva el token 1 min antes de vencer)
+  account.js        login Google Identity Services (botón, auto_select, renueva el token 1 min antes de vencer). Botón GIS: "standard" > 480 px, "icon" ≤ 480 px; se vuelve a dibujar al cruzar ese ancho (`compactScreen` change), si no el botón ancho desbordaba al girar el celular
   account-config.js GOOGLE_CLIENT_ID + FAVORITES_API (vacíos → sin login, favoritos solo en el navegador)
   google-token.js   tokenClaims, isFresh, msUntilRefresh
   favorites-api.js  merge / add / remove contra el Worker
