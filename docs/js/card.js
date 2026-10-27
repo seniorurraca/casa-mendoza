@@ -1,5 +1,5 @@
 import { escapeHtml } from "./format.js";
-import { avisoLink, chips, discountPill, factList, favButton, formatPrice, mapsLink, newTag, photoBadge, scorePill, sources, title } from "./listing-view.js";
+import { avisoLink, chips, ignoreButtons, discountPill, factList, favButton, formatPrice, mapsLink, newTag, photoBadge, scorePill, sources, title } from "./listing-view.js";
 
 export const renderCard = (l, isFavorite) => `
 <article class="card" data-id="${escapeHtml(l.id)}">
@@ -20,7 +20,7 @@ export const renderCard = (l, isFavorite) => `
     <div class="chips">${chips(l)}</div>
     <div class="card-foot">
       <p class="sources">${sources(l)}</p>
-      <div class="card-links">${mapsLink(l)}${avisoLink(l)}</div>
+      <div class="card-links">${ignoreButtons(l)}${mapsLink(l)}${avisoLink(l)}</div>
     </div>
   </div>
 </article>`;

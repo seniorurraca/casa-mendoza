@@ -1,4 +1,5 @@
 import { escapeHtml, formatArs, formatPercent, formatUsd } from "./format.js";
+import { hasCoords } from "./geo.js";
 import { mapsUrl } from "./maps.js";
 import { ICONS } from "./icons.js";
 
@@ -59,6 +60,13 @@ export const avisoLink = (l, { text = "", className = "icon-btn" } = {}) =>
 
 export const mapsLink = (l, { text = "", className = "icon-btn" } = {}) =>
   externalLink(mapsUrl(l), ICONS.map, { text, className, label: "Ver en Google Maps" });
+
+const IGNORE_RADII_M = [200, 500];
+
+export const ignoreButtons = l => (!hasCoords(l) ? "" : IGNORE_RADII_M.map(r => {
+  const label = `Ocultar este aviso y los que estén a ${r} m alrededor`;
+  return `<button type="button" class="icon-btn ignore" data-ignore-radius="${r}" title="${label}" aria-label="${label}">${ICONS.eyeOff}<span>${r} m</span></button>`;
+}).join(""));
 
 export const favButton = (l, isFavorite) => {
   const label = isFavorite ? "Quitar de favoritos" : "Guardar en favoritos";

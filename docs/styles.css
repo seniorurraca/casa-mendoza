@@ -222,6 +222,7 @@ input[type="range"] { accent-color: var(--accent); }
 .card-links .icon-btn { width: 34px; height: 34px; border-color: transparent; background: transparent; color: var(--muted); }
 .card-links .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .card-links .icon { width: 16px; height: 16px; }
+.card-links .icon-btn.ignore { display: inline-flex; gap: 4px; width: auto; padding: 0 8px; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .more { display: flex; margin: 36px auto 0; }
 .empty { grid-column: 1 / -1; padding: 64px 0; text-align: center; color: var(--muted); }
 
@@ -259,10 +260,6 @@ summary { cursor: pointer; }
 .detail > details { margin-top: 20px; }
 .breakdown { list-style: none; margin: 8px 0 0; padding: 0; }
 .breakdown li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--text); }
-.ignore-area { margin-top: 8px; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius); }
-.ignore-area h3 { margin-top: 0 !important; }
-.ignore-area p { margin: 0 0 12px; }
-.ignore-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .actions { display: flex; align-items: center; gap: 8px; }
 .actions.sticky { position: sticky; bottom: 0; margin: 20px -24px -24px; padding: 14px 24px; background: var(--surface); border-top: 1px solid var(--border); }
 .actions .btn.primary { flex: 1; }

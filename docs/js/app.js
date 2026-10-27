@@ -103,7 +103,6 @@ function ignoreArea(listing, radiusM) {
   const count = countMatches(rawListings, zone);
   if (!confirm(`Se van a ocultar ${count} ${count === 1 ? "aviso" : "avisos"} a menos de ${radiusM} m de ${listing.address}. Lo podés deshacer en ⚙ Configuración.`)) return;
   updateZonePrefs({ ...zonePrefs, areas: [...zonePrefs.areas.filter(a => a.id !== zone.id), zone] });
-  detailDialog.close();
 }
 
 function recomputeZones() {
@@ -244,6 +243,8 @@ list.addEventListener("click", event => {
   const favId = event.target.closest("[data-fav]")?.dataset.fav;
   if (favId) return toggleFavorite(favId);
   if (event.target.closest("a")) return;
+  const radius = event.target.closest("[data-ignore-radius]")?.dataset.ignoreRadius;
+  if (radius) return ignoreArea(byId(event.target.closest(".card").dataset.id), Number(radius));
   const action = event.target.closest("[data-action]")?.dataset.action;
   const id = event.target.closest(".card")?.dataset.id;
   if (action === "carousel") openCarousel(byId(id));
@@ -255,8 +256,6 @@ detailDialog.addEventListener("click", event => {
   if (favId) return toggleFavorite(favId);
   const target = event.target.closest("[data-action]");
   const id = detailDialog.querySelector(".detail")?.dataset.id;
-  const radius = event.target.closest("[data-ignore-radius]")?.dataset.ignoreRadius;
-  if (radius) return ignoreArea(byId(id), Number(radius));
   if (target?.dataset.action === "thumb") selectThumb(target.dataset.index);
   if (target?.dataset.action === "gallery-open") openCarousel(byId(id), Number(target.dataset.index));
   if (target?.dataset.action === "close" || event.target === detailDialog) detailDialog.close();

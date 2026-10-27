@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mapsUrl } from "../docs/js/maps.js";
+import { renderCard } from "../docs/js/card.js";
 import { isFresh, tokenClaims } from "../docs/js/google-token.js";
 import { DEFAULT_FILTERS, advancedCount, applyFilters, favoriteListings, monthlyArs } from "../docs/js/filters.js";
 
@@ -8,6 +9,12 @@ const listing = (overrides = {}) => ({
   id: "a", type: "casa", usd: 50000, department: "Godoy Cruz", address: "Calle 1", minutes: 12,
   lat: -32.9163, lng: -68.8314, features: { credito: false, patio: false }, suspicious: false,
   score: 50, discount: 0.1, firstSeen: "2026-10-18", ...overrides,
+});
+
+test("card offers hiding 200 and 500 m around when it has coordinates", () => {
+  const radii = html => [...html.matchAll(/data-ignore-radius="(\d+)"/g)].map(m => m[1]);
+  assert.deepEqual(radii(renderCard(listing(), false)), ["200", "500"]);
+  assert.deepEqual(radii(renderCard(listing({ lat: null, lng: null }), false)), []);
 });
 
 test("google maps link uses coordinates when available", () => {
