@@ -25,10 +25,13 @@ const richness = l => (l.photos?.length ?? 0) * 1000 + (l.description?.length ??
 
 const linksOf = l => [{ source: l.source, url: l.url }, ...(l.alsoOn ?? [])];
 
+const locationOf = ({ lat, lng, minutes }) => ({ lat, lng, minutes });
+
 function merge(group) {
   const [best, ...others] = [...group].sort((a, b) => richness(b) - richness(a));
   const links = [...(best.alsoOn ?? []), ...others.flatMap(linksOf)].filter(link => link.url !== best.url);
-  return { ...best, alsoOn: [...new Map(links.map(link => [link.url, link])).values()] };
+  const located = hasCoords(best) ? best : others.find(hasCoords) ?? best;
+  return { ...best, ...locationOf(located), alsoOn: [...new Map(links.map(link => [link.url, link])).values()] };
 }
 
 export function dedupe(listings) {

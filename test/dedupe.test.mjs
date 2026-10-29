@@ -34,3 +34,11 @@ test("without coordinates, same department and known similar size are required",
   assert.equal(dedupe([base, listing({ ...noCoords, department: "Maipu" })]).length, 2);
   assert.equal(dedupe([base, listing({ ...noCoords, supC: null })]).length, 2);
 });
+
+test("richer winner without coordinates takes the location of a located duplicate", () => {
+  const located = listing({ minutes: 12, department: "Godoy Cruz" });
+  const richer = listing({ id: "m", source: "mendozaprop", url: "https://m", lat: null, lng: null, minutes: null, department: "Godoy Cruz", photos: ["1"] });
+  const [merged] = dedupe([located, richer]);
+  assert.equal(merged.id, "m");
+  assert.deepEqual([merged.lat, merged.lng, merged.minutes], [-32.92, -68.85, 12]);
+});
